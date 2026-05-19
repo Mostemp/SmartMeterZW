@@ -980,7 +980,7 @@
 
       <!-- Meter Face -->
       <div class="meter-face">
-        <div class="meter-label">PREPAID SMART METER · DOMESTIC D1 · SINGLE PHASE</div>
+        <div class="meter-label" id="meterLabel">PREPAID SMART METER · DOMESTIC D1 · SINGLE PHASE</div>
 
         <!-- Units Display -->
         <div class="Units-display">
@@ -1215,6 +1215,9 @@
 
     const BASE_URL = 'http://10.64.14.177:5000';
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const meterNum = urlParams.get('meter') || urlParams.get('meter_number') || '';
+
     // ── Clock ──────────────────────────────────────────────────
     function updateClock() {
       const now = new Date();
@@ -1229,8 +1232,13 @@
     // ── Fetch from Flask ───────────────────────────────────────
     async function fetchData() {
       try {
-        const res = await fetch(`${BASE_URL}/api/status`, { signal: AbortSignal.timeout(3000) });
+        const url = `${BASE_URL}/api/status` + (meterNum ? `?meter_number=${meterNum}` : '');
+        const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
         const d = await res.json();
+        
+        if (d.meter_number) {
+          document.getElementById('meterLabel').innerHTML = `PREPAID SMART METER · METER NO: ${d.meter_number} · SINGLE PHASE`;
+        }
         state.balance = d.unit_balance;
         state.consumption = d.consumption_kw;
         state.voltage = d.voltage;
@@ -1361,7 +1369,8 @@
       state.tamper = true;
 
       // Notify Flask server — app will pick it up within 5 seconds
-      fetch(`${BASE_URL}/api/tamper`, { method: 'POST' }).catch(() => { });
+      const tamperUrl = `${BASE_URL}/api/tamper` + (meterNum ? `?meter_number=${meterNum}` : '');
+      fetch(tamperUrl, { method: 'POST' }).catch(() => { });
 
       document.getElementById('tamperOverlay').classList.add('active');
       document.getElementById('tamperBanner').classList.add('active');
@@ -1438,7 +1447,8 @@
     }
 
     function triggerTopup() {
-      fetch(`${BASE_URL}/api/topup/10`, { method: 'POST' })
+      const topupUrl = `${BASE_URL}/api/topup/10` + (meterNum ? `?meter_number=${meterNum}` : '');
+      fetch(topupUrl, { method: 'POST' })
         .then(res => res.json())
         .then(data => {
           state.balance = data.new_balance;
