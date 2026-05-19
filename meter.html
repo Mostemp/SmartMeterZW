@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMARTMETER ZW — Advanced Simulation</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --green: #00ffa3;
+      --green-dim: #00c87a;
+      --red: #ff3b3b;
+      --orange: #ffaa00;
+      --blue: #00cfff;
+      --bg: #050a0f;
+      --panel: #080f17;
+      --border: rgba(0, 255, 163, 0.15);
+      --glow: 0 0 20px rgba(0, 255, 163, 0.3);
+      --font-display: 'Orbitron', monospace;
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-body: 'Rajdhani', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--green);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+
+    /* Scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.08) 2px,
+          rgba(0, 0, 0, 0.08) 4px);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Grid background */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 255, 163, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 163, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      margin-bottom: 20px;
+      position: relative;
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+      animation: scanH 3s linear infinite;
+    }
+
+    @keyframes scanH {
+      0% {
+        background-position: -100% 0;
+      }
+
+      100% {
+        background-position: 200% 0;
+      }
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      border: 2px solid var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      position: relative;
+      animation: borderPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes borderPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 10px rgba(0, 255, 163, 0.3);
+      }
+
+      50% {
+        box-shadow: 0 0 25px rgba(0, 255, 163, 0.8), inset 0 0 10px rgba(0, 255, 163, 0.1);
+      }
+    }
+
+    .logo-text {
+      font-family: var(--font-display);
+    }
+
+    .logo-title {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 3px;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: rgba(0, 255, 163, 0.5);
+      letter-spacing: 4px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-size: 11px;
+      letter-spacing: 2px;
+      animation: borderPulse 2s ease-in-out infinite;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0
+      }
+    }
+
+    .clock {
+      color: rgba(0, 255, 163, 0.6);
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Main Grid ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      grid-template-rows: auto auto;
+      gap: 16px;
+    }
+
+    /* ── Meter Face ── */
+    .meter-face {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 28px;
+      position: relative;
+      clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
+    }
+
+    .meter-face::after {
+      content: 'ZW-2024-00142';
+      position: absolute;
+      bottom: 14px;
+      right: 20px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: rgba(0, 255, 163, 0.2);
+      letter-spacing: 2px;
+    }
+
+    .meter-label {
+      font-family: var(--font-display);
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: rgba(0, 255, 163, 0.4);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* Big Units display */
+    .Units-display {
+      text-align: center;
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .Units-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: rgba(0, 255, 163, 0.4);
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+
+    .Units-value {
+      font-family: var(--font-display);
+      font-size: 72px;
+      font-weight: 900;
+      line-height: 1;
+      text-shadow: 0 0 30px rgba(0, 255, 163, 0.8), 0 0 60px rgba(0, 255, 163, 0.3);
+      transition: color 0.5s, text-shadow 0.5s;
+      position: relative;
+    }
+
+    .Units-value.low {
+      color: var(--orange);
+      text-shadow: 0 0 30px rgba(255, 170, 0, 0.8);
+    }
+
+    .Units-value.critical {
+      color: var(--red);
+      text-shadow: 0 0 30px rgba(255, 59, 59, 0.8);
+      animation: criticalFlash 0.5s step-end infinite;
+    }
+
+    @keyframes criticalFlash {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.4
+      }
+    }
+
+    .Units-unit {
+      font-family: var(--font-display);
+      font-size: 16px;
+      color: rgba(0, 255, 163, 0.5);
+      letter-spacing: 3px;
+    }
+
+    /* Arc meter */
+    .arc-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .arc-svg {
+      overflow: visible;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      background: rgba(0, 255, 163, 0.04);
+      border: 1px solid rgba(0, 255, 163, 0.12);
+      padding: 12px;
+      text-align: center;
+      position: relative;
+      transition: border-color 0.3s;
+    }
+
+    .stat-box:hover {
+      border-color: rgba(0, 255, 163, 0.4);
+    }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: rgba(0, 255, 163, 0.4);
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(0, 255, 163, 0.5);
+    }
+
+    .stat-value.blue {
+      color: var(--blue);
+      text-shadow: 0 0 10px rgba(0, 207, 255, 0.5);
+    }
+
+    .stat-value.orange {
+      color: var(--orange);
+      text-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+    }
+
+    /* Load bar */
+    .load-section {
+      margin-bottom: 20px;
+    }
+
+    .load-header {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: rgba(0, 255, 163, 0.4);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    .load-bar-track {
+      height: 8px;
+      background: rgba(0, 255, 163, 0.08);
+      border: 1px solid rgba(0, 255, 163, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .load-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green-dim), var(--green));
+      transition: width 1s ease;
+      position: relative;
+    }
+
+    .load-bar-fill::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 20px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+
+      0%,
+      100% {
+        opacity: 0
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    /* Waveform */
+    .wave-section {
+      margin-bottom: 20px;
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: rgba(0, 255, 163, 0.4);
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+
+    .wave-canvas {
+      width: 100%;
+      height: 60px;
+      border: 1px solid rgba(0, 255, 163, 0.1);
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    /* Control buttons */
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .ctrl-btn {
+      padding: 10px 6px;
+      border: 1px solid rgba(0, 255, 163, 0.25);
+      background: rgba(0, 255, 163, 0.04);
+      color: var(--green);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(0, 255, 163, 0.12);
+      border-color: var(--green);
+      box-shadow: var(--glow);
+    }
+
+    .ctrl-btn.red {
+      border-color: rgba(255, 59, 59, 0.3);
+      color: var(--red);
+    }
+
+    .ctrl-btn.red:hover {
+      background: rgba(255, 59, 59, 0.1);
+      border-color: var(--red);
+      box-shadow: 0 0 20px rgba(255, 59, 59, 0.3);
+    }
+
+    .ctrl-btn.orange {
+      border-color: rgba(255, 170, 0, 0.3);
+      color: var(--orange);
+    }
+
+    .ctrl-btn.orange:hover {
+      background: rgba(255, 170, 0, 0.1);
+      border-color: var(--orange);
+    }
+
+    .ctrl-btn.blue {
+      border-color: rgba(0, 207, 255, 0.3);
+      color: var(--blue);
+    }
+
+    .ctrl-btn.blue:hover {
+      background: rgba(0, 207, 255, 0.1);
+      border-color: var(--blue);
+    }
+
+    /* ── Right Column ── */
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Alert panel */
+    .alert-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 16px;
+    }
+
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: rgba(0, 255, 163, 0.5);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(0, 255, 163, 0.1);
+    }
+
+    .alert-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .alert-list::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .alert-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .alert-list::-webkit-scrollbar-thumb {
+      background: rgba(0, 255, 163, 0.3);
+    }
+
+    .alert-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px;
+      border-left: 2px solid var(--green);
+      background: rgba(0, 255, 163, 0.04);
+      animation: slideIn 0.3s ease;
+      font-size: 13px;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .alert-item.warn {
+      border-left-color: var(--orange);
+      background: rgba(255, 170, 0, 0.04);
+    }
+
+    .alert-item.danger {
+      border-left-color: var(--red);
+      background: rgba(255, 59, 59, 0.06);
+    }
+
+    .alert-time {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: rgba(0, 255, 163, 0.3);
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    .alert-msg {
+      font-size: 12px;
+      color: rgba(0, 255, 163, 0.7);
+      line-height: 1.4;
+    }
+
+    .alert-item.warn .alert-msg {
+      color: rgba(255, 170, 0, 0.8);
+    }
+
+    .alert-item.danger .alert-msg {
+      color: rgba(255, 59, 59, 0.9);
+    }
+
+    /* Topology map */
+    .topo-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 16px;
+      flex: 1;
+    }
+
+    .topo-svg {
+      width: 100%;
+    }
+
+    /* Load shedding panel */
+    .loadshed-panel {
+      background: var(--panel);
+      border: 1px solid rgba(255, 170, 0, 0.2);
+      padding: 16px;
+    }
+
+    .loadshed-panel.active {
+      border-color: var(--red);
+      animation: dangerBorder 1s ease-in-out infinite;
+    }
+
+    @keyframes dangerBorder {
+
+      0%,
+      100% {
+        border-color: var(--red);
+        box-shadow: none;
+      }
+
+      50% {
+        border-color: var(--red);
+        box-shadow: 0 0 20px rgba(255, 59, 59, 0.3);
+      }
+    }
+
+    .loadshed-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .ls-label {
+      font-family: var(--font-display);
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: rgba(255, 170, 0, 0.6);
+    }
+
+    .ls-badge {
+      padding: 4px 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+    }
+
+    .ls-badge.off {
+      background: rgba(0, 255, 163, 0.1);
+      color: var(--green);
+      border: 1px solid rgba(0, 255, 163, 0.3);
+    }
+
+    .ls-badge.on {
+      background: rgba(255, 59, 59, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(255, 59, 59, 0.5);
+      animation: blink 0.8s step-end infinite;
+    }
+
+    .ls-schedule {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: rgba(255, 170, 0, 0.5);
+      line-height: 1.8;
+    }
+
+    /* Tamper overlay */
+    .tamper-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 0, 0, 0.08);
+      z-index: 100;
+      pointer-events: none;
+      animation: tamperFlash 0.3s step-end infinite;
+    }
+
+    @keyframes tamperFlash {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0
+      }
+    }
+
+    .tamper-overlay.active {
+      display: block;
+    }
+
+    .tamper-banner {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: var(--red);
+      color: white;
+      text-align: center;
+      padding: 12px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      letter-spacing: 4px;
+      z-index: 200;
+      animation: tamperFlash 0.5s step-end infinite;
+    }
+
+    .tamper-banner.active {
+      display: block;
+    }
+
+    /* Power cut overlay */
+    .powercut-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .powercut-overlay.active {
+      display: flex;
+    }
+
+    .powercut-text {
+      font-family: var(--font-display);
+      font-size: 28px;
+      color: rgba(255, 59, 59, 0.8);
+      letter-spacing: 6px;
+      animation: criticalFlash 1s step-end infinite;
+    }
+
+    .powercut-sub {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.3);
+      letter-spacing: 2px;
+    }
+
+    .restore-btn {
+      margin-top: 20px;
+      padding: 12px 32px;
+      border: 1px solid rgba(0, 255, 163, 0.4);
+      background: transparent;
+      color: var(--green);
+      font-family: var(--font-display);
+      font-size: 12px;
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .restore-btn:hover {
+      background: rgba(0, 255, 163, 0.1);
+      box-shadow: var(--glow);
+    }
+
+    /* ── Fingerprint Scanner ── */
+    .fp-panel {
+      border: 1px solid rgba(0,255,163,0.15);
+      background: var(--panel);
+      padding: 16px;
+      margin-top: 12px;
+      position: relative;
+    }
+
+    .fp-panel::before {
+      content: 'BIOMETRIC ACCESS';
+      position: absolute;
+      top: -9px;
+      left: 14px;
+      background: var(--panel);
+      padding: 0 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: rgba(0,255,163,0.5);
+      letter-spacing: 3px;
+    }
+
+    .fp-scanner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 0;
+    }
+
+    .fp-circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 2px solid rgba(0,255,163,0.3);
+      background: rgba(0,255,163,0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      overflow: hidden;
+    }
+
+    .fp-circle:hover {
+      border-color: rgba(0,255,163,0.7);
+      box-shadow: 0 0 20px rgba(0,255,163,0.2);
+    }
+
+    .fp-circle.scanning {
+      border-color: rgba(0,207,255,0.8);
+      box-shadow: 0 0 30px rgba(0,207,255,0.4);
+      animation: fpPulse 0.8s ease-in-out infinite;
+    }
+
+    .fp-circle.success {
+      border-color: rgba(0,255,163,0.9);
+      box-shadow: 0 0 40px rgba(0,255,163,0.6);
+    }
+
+    .fp-circle.denied {
+      border-color: rgba(255,59,59,0.9);
+      box-shadow: 0 0 30px rgba(255,59,59,0.5);
+    }
+
+    @keyframes fpPulse {
+      0%, 100% { box-shadow: 0 0 15px rgba(0,207,255,0.3); }
+      50% { box-shadow: 0 0 40px rgba(0,207,255,0.7); }
+    }
+
+    .fp-scan-line {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0,207,255,0.8), transparent);
+      top: 0;
+      left: 0;
+      display: none;
+      box-shadow: 0 0 8px rgba(0,207,255,0.8);
+    }
+
+    .fp-circle.scanning .fp-scan-line {
+      display: block;
+      animation: fpScan 1.2s linear infinite;
+    }
+
+    @keyframes fpScan {
+      0% { top: 0%; }
+      100% { top: 100%; }
+    }
+
+    .fp-status {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: rgba(0,255,163,0.4);
+      text-align: center;
+      min-height: 16px;
+      transition: color 0.3s;
+    }
+
+    .fp-status.scanning { color: rgba(0,207,255,0.8); }
+    .fp-status.success  { color: var(--green); }
+    .fp-status.denied   { color: var(--red); }
+
+    .fp-info {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: rgba(0,255,163,0.25);
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    .fp-access-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .fp-access-btn {
+      flex: 1;
+      padding: 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      border: 1px solid rgba(255,59,59,0.35);
+      background: rgba(255,59,59,0.05);
+      color: rgba(255,59,59,0.8);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .fp-access-btn:hover {
+      background: rgba(255,59,59,0.15);
+      box-shadow: 0 0 10px rgba(255,59,59,0.2);
+    }
+
+    .fp-access-btn.allow {
+      border-color: rgba(0,255,163,0.35);
+      background: rgba(0,255,163,0.05);
+      color: rgba(0,255,163,0.8);
+    }
+
+    .fp-access-btn.allow:hover {
+      background: rgba(0,255,163,0.15);
+      box-shadow: 0 0 10px rgba(0,255,163,0.2);
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: rgba(0, 255, 163, 0.2);
+      letter-spacing: 2px;
+      padding: 10px 0;
+      border-top: 1px solid rgba(0, 255, 163, 0.08);
+    }
+
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .meter-face {
+        grid-row: auto;
+      }
+
+      .Units-value {
+        font-size: 52px;
+      }
+
+      .controls {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="tamper-overlay" id="tamperOverlay"></div>
+  <div class="tamper-banner" id="tamperBanner">⚠ TAMPER DETECTED — UNAUTHORIZED ACCESS — ZESA SECURITY ALERT ⚠</div>
+
+  <div class="powercut-overlay" id="powercutOverlay">
+    <div style="font-size:80px">⚡</div>
+    <div class="powercut-text">LOAD SHEDDING ACTIVE</div>
+    <div class="powercut-sub">POWER SUPPLY INTERRUPTED — ZESA HARARE METRO</div>
+    <div class="powercut-sub" id="restoreTimer">Restoring in 10s...</div>
+    <button class="restore-btn" onclick="restorePower()">RESTORE POWER MANUALLY</button>
+  </div>
+
+  <div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">
+          <div class="logo-title">SMARTMETER ZW</div>
+          <div class="logo-sub">ADVANCED SIMULATION · ZESA HARARE</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="clock" id="clock">--:--:--</div>
+        <div class="status-badge">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText">ONLINE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+
+      <!-- Meter Face -->
+      <div class="meter-face">
+        <div class="meter-label">PREPAID SMART METER · DOMESTIC D1 · SINGLE PHASE</div>
+
+        <!-- Units Display -->
+        <div class="Units-display">
+          <div class="Units-label">UNIT BALANCE</div>
+          <div class="Units-value" id="UnitsValue">45.72</div>
+          <div class="Units-unit">Units REMAINING</div>
+        </div>
+
+        <!-- Arc gauge -->
+        <div class="arc-container">
+          <svg class="arc-svg" width="280" height="140" viewBox="0 0 280 140">
+            <defs>
+              <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#ff3b3b" />
+                <stop offset="40%" style="stop-color:#ffaa00" />
+                <stop offset="100%" style="stop-color:#00ffa3" />
+              </linearGradient>
+            </defs>
+            <!-- Track -->
+            <path d="M 20 130 A 120 120 0 0 1 260 130" fill="none" stroke="rgba(0,255,163,0.08)" stroke-width="12"
+              stroke-linecap="round" />
+            <!-- Fill -->
+            <path id="arcFill" d="M 20 130 A 120 120 0 0 1 260 130" fill="none" stroke="url(#arcGrad)" stroke-width="12"
+              stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="0"
+              style="transition: stroke-dashoffset 1s ease" />
+            <!-- Needle marker -->
+            <circle id="arcDot" cx="260" cy="130" r="8" fill="var(--green)"
+              style="filter: drop-shadow(0 0 6px var(--green)); transition: all 1s ease" />
+            <!-- Labels -->
+            <text x="14" y="148" fill="rgba(255,59,59,0.6)" font-family="'Share Tech Mono'" font-size="10">0</text>
+            <text x="130" y="20" fill="rgba(255,170,0,0.6)" font-family="'Share Tech Mono'" font-size="10"
+              text-anchor="middle">50</text>
+            <text x="250" y="148" fill="rgba(0,255,163,0.6)" font-family="'Share Tech Mono'" font-size="10">100+</text>
+          </svg>
+        </div>
+
+        <!-- Stats row -->
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-label">CONSUMPTION</div>
+            <div class="stat-value blue" id="consumptionVal">2.4</div>
+            <div class="stat-label">kW</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">VOLTAGE</div>
+            <div class="stat-value" id="voltageVal">220</div>
+            <div class="stat-label">VOLTS</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">CURRENT</div>
+            <div class="stat-value orange" id="currentVal">10.9</div>
+            <div class="stat-label">AMPS</div>
+          </div>
+        </div>
+
+        <!-- Load bar -->
+        <div class="load-section">
+          <div class="load-header">
+            <span>LOAD LEVEL</span>
+            <span id="loadPct">40%</span>
+          </div>
+          <div class="load-bar-track">
+            <div class="load-bar-fill" id="loadBar" style="width:40%"></div>
+          </div>
+        </div>
+
+        <!-- Waveform -->
+        <div class="wave-section">
+          <div class="section-label">AC WAVEFORM — LIVE</div>
+          <canvas class="wave-canvas" id="waveCanvas"></canvas>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <button class="ctrl-btn" onclick="triggerTopup()">+ TOP UP</button>
+          <button class="ctrl-btn blue" onclick="toggleLoadShed()">LOAD SHED</button>
+          <button class="ctrl-btn orange" onclick="triggerLowBalance()">LOW BAL</button>
+          <button class="ctrl-btn red" onclick="triggerTamper()">TAMPER</button>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="right-col">
+
+        <!-- Alert Log -->
+        <div class="alert-panel">
+          <div class="panel-title">SYSTEM EVENT LOG</div>
+          <div class="alert-list" id="alertList">
+            <div class="alert-item">
+              <div>
+                <div class="alert-time" id="bootTime">--:--:--</div>
+                <div class="alert-msg">System initialised. Meter online.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Network Topology -->
+        <div class="topo-panel">
+          <div class="panel-title">NETWORK TOPOLOGY</div>
+          <svg class="topo-svg" viewBox="0 0 280 160">
+            <!-- ZESA Grid -->
+            <rect x="10" y="10" width="70" height="36" rx="4" fill="rgba(0,207,255,0.08)" stroke="rgba(0,207,255,0.4)"
+              stroke-width="1" />
+            <text x="45" y="25" text-anchor="middle" fill="rgba(0,207,255,0.8)" font-family="'Share Tech Mono'"
+              font-size="9">ZESA GRID</text>
+            <text x="45" y="38" text-anchor="middle" fill="rgba(0,207,255,0.5)" font-family="'Share Tech Mono'"
+              font-size="8">HARARE</text>
+
+            <!-- AWS Cloud -->
+            <rect x="200" y="10" width="70" height="36" rx="4" fill="rgba(0,255,163,0.08)" stroke="rgba(0,255,163,0.3)"
+              stroke-width="1" />
+            <text x="235" y="25" text-anchor="middle" fill="rgba(0,255,163,0.8)" font-family="'Share Tech Mono'"
+              font-size="9">AWS CLOUD</text>
+            <text x="235" y="38" text-anchor="middle" fill="rgba(0,255,163,0.5)" font-family="'Share Tech Mono'"
+              font-size="8">FIREBASE</text>
+
+            <!-- Smart Meter (center) -->
+            <rect x="95" y="60" width="90" height="44" rx="4" fill="rgba(0,255,163,0.12)" stroke="var(--green)"
+              stroke-width="1.5" />
+            <text x="140" y="78" text-anchor="middle" fill="var(--green)" font-family="'Orbitron'" font-size="9"
+              font-weight="700">SMARTMETER ZW</text>
+            <text x="140" y="92" text-anchor="middle" fill="rgba(0,255,163,0.6)" font-family="'Share Tech Mono'"
+              font-size="8">ZW-2024-00142</text>
+
+            <!-- Mobile App -->
+            <rect x="95" y="124" width="90" height="30" rx="4" fill="rgba(255,170,0,0.08)" stroke="rgba(255,170,0,0.4)"
+              stroke-width="1" />
+            <text x="140" y="143" text-anchor="middle" fill="rgba(255,170,0,0.8)" font-family="'Share Tech Mono'"
+              font-size="9">MOBILE APP</text>
+
+            <!-- Lines -->
+            <line x1="80" y1="28" x2="95" y2="82" stroke="rgba(0,207,255,0.3)" stroke-width="1"
+              stroke-dasharray="4,3" />
+            <line x1="200" y1="28" x2="185" y2="82" stroke="rgba(0,255,163,0.3)" stroke-width="1"
+              stroke-dasharray="4,3" />
+            <line x1="140" y1="104" x2="140" y2="124" stroke="rgba(255,170,0,0.3)" stroke-width="1"
+              stroke-dasharray="4,3" />
+
+            <!-- Animated dots on lines -->
+            <circle r="3" fill="rgba(0,207,255,0.8)">
+              <animateMotion dur="2s" repeatCount="indefinite">
+                <mpath href="#path1" />
+              </animateMotion>
+            </circle>
+            <path id="path1" d="M 80 28 L 95 82" fill="none" />
+
+            <circle r="3" fill="rgba(0,255,163,0.8)">
+              <animateMotion dur="1.5s" repeatCount="indefinite">
+                <mpath href="#path2" />
+              </animateMotion>
+            </circle>
+            <path id="path2" d="M 185 82 L 200 28" fill="none" />
+
+            <circle r="3" fill="rgba(255,170,0,0.8)">
+              <animateMotion dur="1.8s" repeatCount="indefinite">
+                <mpath href="#path3" />
+              </animateMotion>
+            </circle>
+            <path id="path3" d="M 140 104 L 140 124" fill="none" />
+
+            <!-- Signal strength indicator -->
+            <text x="140" y="158" text-anchor="middle" fill="rgba(0,255,163,0.3)" font-family="'Share Tech Mono'"
+              font-size="8">4G LTE ████ EXCELLENT</text>
+          </svg>
+        </div>
+
+        <!-- Load Shedding Panel -->
+        <div class="loadshed-panel" id="loadshedPanel">
+          <div class="loadshed-status">
+            <div class="ls-label">LOAD SHEDDING</div>
+            <div class="ls-badge off" id="lsBadge">INACTIVE</div>
+          </div>
+          <div class="ls-schedule">
+            STAGE 2 · GROUP 5 · HARARE<br>
+            NEXT: 18:00 – 20:30<br>
+            AFTER: 02:00 – 04:30<br>
+            <span style="color:rgba(0,255,163,0.3)">SOURCE: ZESA SCHEDULE</span>
+          </div>
+        </div>
+
+        <!-- Fingerprint Scanner Panel -->
+        <div class="fp-panel">
+          <div class="fp-scanner">
+            <div class="fp-circle" id="fpCircle" onclick="startFpScan()">
+              <div class="fp-scan-line"></div>
+              <svg class="fp-icon" id="fpIcon" width="60" height="60" viewBox="0 0 60 60" fill="none">
+                <path d="M30 8 C18 8, 10 17, 10 28" stroke="rgba(0,255,163,0.4)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                <path d="M30 8 C42 8, 50 17, 50 28" stroke="rgba(0,255,163,0.4)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                <path d="M17 22 C17 14, 23 10, 30 10 C37 10, 43 14, 43 22" stroke="rgba(0,255,163,0.35)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                <path d="M14 30 C14 20, 21 14, 30 14 C39 14, 46 20, 46 30" stroke="rgba(0,255,163,0.3)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                <path d="M18 36 C18 26, 23 20, 30 20 C37 20, 42 26, 42 36" stroke="rgba(0,255,163,0.28)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                <path d="M22 42 C22 33, 26 27, 30 27 C34 27, 38 33, 38 42" stroke="rgba(0,255,163,0.25)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                <path d="M26 48 C26 40, 28 36, 30 36 C32 36, 34 40, 34 48" stroke="rgba(0,255,163,0.2)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              </svg>
+            </div>
+
+            <div class="fp-status" id="fpStatus">TOUCH TO SCAN</div>
+            <div class="fp-info" id="fpInfo">ENGINEER ACCESS ONLY · ZESA AUTHORIZED</div>
+
+            <div class="fp-access-row">
+              <button class="fp-access-btn allow" onclick="simulateFp(true)">ALLOW ACCESS</button>
+              <button class="fp-access-btn" onclick="simulateFp(false)">DENY ACCESS</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>SMARTMETER ZW · UZ RESEARCH INNOVATION 2026</span>
+      <span id="serverStatus">SERVER: 10.64.14.177:5000</span>
+      <span id="pollStatus">POLLING LIVE DATA...</span>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────────────────
+    const state = {
+      balance: 45.72,
+      consumption: 2.4,
+      voltage: 220,
+      current: 10.9,
+      load: 40,
+      tamper: false,
+      loadShed: false,
+      powercutTimer: null,
+      waveOffset: 0,
+      serverOnline: false,
+    };
+
+    const BASE_URL = 'http://10.64.14.177:5000';
+
+    // ── Clock ──────────────────────────────────────────────────
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toLocaleTimeString('en-ZW', { hour12: false });
+      document.getElementById('bootTime').textContent =
+        now.toLocaleTimeString('en-ZW', { hour12: false });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ── Fetch from Flask ───────────────────────────────────────
+    async function fetchData() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/status`, { signal: AbortSignal.timeout(3000) });
+        const d = await res.json();
+        state.balance = d.unit_balance;
+        state.consumption = d.consumption_kw;
+        state.voltage = d.voltage;
+        state.current = parseFloat((d.consumption_kw * 1000 / d.voltage).toFixed(1));
+        state.load = Math.min(100, Math.round((d.consumption_kw / 6) * 100));
+        state.serverOnline = true;
+        document.getElementById('pollStatus').textContent = 'LIVE · ' + new Date().toLocaleTimeString();
+        document.getElementById('serverStatus').style.color = 'rgba(0,255,163,0.4)';
+        if (d.tamper_alert && !state.tamper) triggerTamper();
+        if (d.status === 'LOW_BALANCE') triggerLowBalance();
+      } catch (e) {
+        state.serverOnline = false;
+        document.getElementById('pollStatus').textContent = 'SERVER OFFLINE — SIMULATION MODE';
+        document.getElementById('serverStatus').style.color = 'rgba(255,59,59,0.5)';
+        // Simulate locally when server is offline
+        simulateLocally();
+      }
+      updateDisplay();
+    }
+
+    function simulateLocally() {
+      const hour = new Date().getHours();
+      let base = 0.8;
+      if (hour >= 6 && hour < 9) base = 2.4;
+      else if (hour >= 17 && hour < 21) base = 3.1;
+      else if (hour < 5) base = 0.3;
+      state.consumption = parseFloat((base + (Math.random() - 0.5) * 0.4).toFixed(2));
+      state.voltage = parseFloat((220 + (Math.random() - 0.5) * 8).toFixed(1));
+      state.current = parseFloat((state.consumption * 1000 / state.voltage).toFixed(1));
+      state.load = Math.min(100, Math.round((state.consumption / 6) * 100));
+      // Drain balance slowly
+      state.balance = Math.max(0, parseFloat((state.balance - state.consumption / 3600 * 5).toFixed(2)));
+    }
+
+    // ── Update Display ─────────────────────────────────────────
+    function updateDisplay() {
+      if (state.loadShed) return;
+
+      const UnitsEl = document.getElementById('UnitsValue');
+      UnitsEl.textContent = state.balance.toFixed(2);
+      UnitsEl.className = 'Units-value' + (state.balance < 2 ? ' critical' : state.balance < 5 ? ' low' : '');
+
+      document.getElementById('consumptionVal').textContent = state.consumption;
+      document.getElementById('voltageVal').textContent = state.voltage.toFixed(0);
+      document.getElementById('currentVal').textContent = state.current;
+      document.getElementById('loadPct').textContent = state.load + '%';
+      document.getElementById('loadBar').style.width = state.load + '%';
+
+      // Color load bar
+      const bar = document.getElementById('loadBar');
+      if (state.load > 80) bar.style.background = 'linear-gradient(90deg, #cc0000, var(--red))';
+      else if (state.load > 60) bar.style.background = 'linear-gradient(90deg, #cc7700, var(--orange))';
+      else bar.style.background = 'linear-gradient(90deg, var(--green-dim), var(--green))';
+
+      // Arc gauge (balance 0-100Units mapped to arc)
+      const pct = Math.min(1, state.balance / 100);
+      const arcLen = 377;
+      document.getElementById('arcFill').style.strokeDashoffset = arcLen * (1 - pct);
+
+      // Move arc dot
+      const angle = Math.PI * (1 - pct); // 180deg to 0deg
+      const cx = 140 + 120 * Math.cos(Math.PI - angle);
+      const cy = 130 - 120 * Math.sin(Math.PI - angle);
+      const dot = document.getElementById('arcDot');
+      dot.setAttribute('cx', cx.toFixed(1));
+      dot.setAttribute('cy', cy.toFixed(1));
+      dot.setAttribute('fill', state.balance < 2 ? 'var(--red)' : state.balance < 5 ? 'var(--orange)' : 'var(--green)');
+    }
+
+    // ── Waveform Canvas ────────────────────────────────────────
+    function drawWave() {
+      const canvas = document.getElementById('waveCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth;
+      canvas.height = 60;
+      const W = canvas.width, H = canvas.height;
+
+      ctx.clearRect(0, 0, W, H);
+
+      if (state.loadShed) {
+        ctx.strokeStyle = 'rgba(255,59,59,0.3)';
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2);
+        ctx.stroke();
+        return;
+      }
+
+      const amp = state.tamper ? H * 0.45 : H * 0.35;
+      const freq = state.tamper ? 0.06 : 0.04;
+      const noise = state.tamper ? 6 : 0;
+
+      ctx.strokeStyle = state.tamper ? 'rgba(255,59,59,0.8)' : 'rgba(0,255,163,0.8)';
+      ctx.shadowColor = state.tamper ? 'var(--red)' : 'var(--green)';
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      for (let x = 0; x < W; x++) {
+        const y = H / 2 + amp * Math.sin((x + state.waveOffset) * freq)
+          + (noise ? (Math.random() - 0.5) * noise : 0);
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      state.waveOffset += 3;
+    }
+
+    setInterval(drawWave, 50);
+
+    // ── Alert Log ──────────────────────────────────────────────
+    function addAlert(msg, type = 'info') {
+      const list = document.getElementById('alertList');
+      const time = new Date().toLocaleTimeString('en-ZW', { hour12: false });
+      const div = document.createElement('div');
+      div.className = `alert-item${type === 'warn' ? ' warn' : type === 'danger' ? ' danger' : ''}`;
+      div.innerHTML = `<div><div class="alert-time">${time}</div><div class="alert-msg">${msg}</div></div>`;
+      list.insertBefore(div, list.firstChild);
+      // Keep max 20
+      while (list.children.length > 20) list.removeChild(list.lastChild);
+    }
+
+    // ── Simulation Controls ────────────────────────────────────
+    function triggerTamper() {
+      if (state.tamper) return;
+      state.tamper = true;
+
+      // Notify Flask server — app will pick it up within 5 seconds
+      fetch(`${BASE_URL}/api/tamper`, { method: 'POST' }).catch(() => { });
+
+      document.getElementById('tamperOverlay').classList.add('active');
+      document.getElementById('tamperBanner').classList.add('active');
+      addAlert('⚠ TAMPER DETECTED — Enclosure breach on meter ZW-2024-00142', 'danger');
+      addAlert('ZESA Security notified — Ref #TMP-' + Math.floor(Math.random() * 9000 + 1000), 'danger');
+
+      setTimeout(() => {
+        state.tamper = false;
+        document.getElementById('tamperOverlay').classList.remove('active');
+        document.getElementById('tamperBanner').classList.remove('active');
+        addAlert('Tamper alert cleared. Monitoring resumed.', 'warn');
+      }, 8000);
+    }
+
+    // ── Fingerprint Scanner ────────────────────────────────────
+    let fpBusy = false;
+
+    function startFpScan() {
+      if (fpBusy) return;
+      fpBusy = true;
+      const circle = document.getElementById('fpCircle');
+      const status = document.getElementById('fpStatus');
+      const info   = document.getElementById('fpInfo');
+
+      // Scanning state
+      circle.className = 'fp-circle scanning';
+      status.className = 'fp-status scanning';
+      status.textContent = 'SCANNING...';
+      info.textContent   = 'READING BIOMETRIC DATA';
+
+      // After 2.5s, auto-resolve as success (click manually for choice)
+      setTimeout(() => {
+        if (fpBusy) simulateFp(true);
+      }, 2500);
+    }
+
+    function simulateFp(allow) {
+      fpBusy = false;
+      const circle = document.getElementById('fpCircle');
+      const status = document.getElementById('fpStatus');
+      const info   = document.getElementById('fpInfo');
+
+      if (allow) {
+        circle.className = 'fp-circle success';
+        status.className = 'fp-status success';
+        status.textContent = 'ACCESS GRANTED';
+        info.textContent   = 'ENG. J. MOYO · ZESA ID: ZW-ENG-0042';
+        addAlert('Biometric auth: Engineer access granted — J. Moyo ZW-ENG-0042', 'ok');
+      } else {
+        circle.className = 'fp-circle denied';
+        status.className = 'fp-status denied';
+        status.textContent = 'ACCESS DENIED';
+        info.textContent   = 'FINGERPRINT NOT RECOGNISED';
+        addAlert('Biometric auth FAILED — Unauthorized fingerprint detected', 'danger');
+        // Trigger tamper since unknown person tried to access
+        triggerTamper();
+      }
+
+      // Reset after 3 seconds
+      setTimeout(() => {
+        circle.className = 'fp-circle';
+        status.className = 'fp-status';
+        status.textContent = 'TOUCH TO SCAN';
+        info.textContent   = 'ENGINEER ACCESS ONLY · ZESA AUTHORIZED';
+      }, 3000);
+    }
+
+    function triggerLowBalance() {
+      if (state.balance > 5) state.balance = 4.8;
+
+      addAlert('⚠ LOW BALANCE: ' + state.balance.toFixed(2) + ' Units remaining', 'warn');
+      addAlert('Top up via EcoCash or ZESA Token to restore supply', 'warn');
+      updateDisplay();
+    }
+
+    function triggerTopup() {
+      fetch(`${BASE_URL}/api/topup/10`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          state.balance = data.new_balance;
+          addAlert('✓ TOP-UP: +' + data.units_added + ' Units added. New balance: ' + data.new_balance.toFixed(2) + ' Units');
+          updateDisplay();
+        })
+        .catch(() => {
+          // Fallback local update if server unreachable
+          const units = 28.57;
+          state.balance = parseFloat((state.balance + units).toFixed(2));
+          addAlert('✓ TOP-UP (local): +' + units + ' Units added. New balance: ' + state.balance.toFixed(2) + ' Units');
+          updateDisplay();
+        });
+    }
+
+    let lsCountdown = null;
+    function toggleLoadShed() {
+      if (!state.loadShed) {
+        // Start load shedding
+        state.loadShed = true;
+        document.getElementById('loadshedPanel').classList.add('active');
+        document.getElementById('lsBadge').className = 'ls-badge on';
+        document.getElementById('lsBadge').textContent = 'ACTIVE';
+        document.getElementById('statusDot').style.background = 'var(--red)';
+        document.getElementById('statusText').textContent = 'LOAD SHED';
+        addAlert('⚡ LOAD SHEDDING STARTED — Stage 2 Group 5', 'danger');
+
+        // Show blackout screen
+        document.getElementById('powercutOverlay').classList.add('active');
+
+        // Countdown
+        let secs = 15;
+        document.getElementById('restoreTimer').textContent = `Auto-restoring in ${secs}s...`;
+        lsCountdown = setInterval(() => {
+          secs--;
+          document.getElementById('restoreTimer').textContent = `Auto-restoring in ${secs}s...`;
+          if (secs <= 0) restorePower();
+        }, 1000);
+
+      } else {
+        restorePower();
+      }
+    }
+
+    function restorePower() {
+      if (lsCountdown) { clearInterval(lsCountdown); lsCountdown = null; }
+      state.loadShed = false;
+      document.getElementById('powercutOverlay').classList.remove('active');
+      document.getElementById('loadshedPanel').classList.remove('active');
+      document.getElementById('lsBadge').className = 'ls-badge off';
+      document.getElementById('lsBadge').textContent = 'INACTIVE';
+      document.getElementById('statusDot').style.background = 'var(--green)';
+      document.getElementById('statusText').textContent = 'ONLINE';
+      addAlert('✓ Power restored — Load shedding ended');
+      updateDisplay();
+    }
+
+    // ── Poll server every 5s ───────────────────────────────────
+    fetchData();
+    setInterval(fetchData, 5000);
+
+    // ── Resize canvas on window resize ────────────────────────
+    window.addEventListener('resize', drawWave);
+  </script>
+</body>
+
+</html>
