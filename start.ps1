@@ -3,9 +3,10 @@
 # Detects current IP, updates app config, starts Flask server
 # ============================================================
 
-$dartFile = "C:\SmartMeterZW\smartmeter_zw\lib\main.dart"
-$htmlFile = "C:\SmartMeterZW\meter.html"
-$serverFile = "C:\SmartMeterZW\server.py"
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$dartFile = Join-Path $scriptDir "smartmeter_zw\lib\main.dart"
+$htmlFile = Join-Path $scriptDir "meter.html"
+$serverFile = Join-Path $scriptDir "server.py"
 
 Write-Host ""
 Write-Host "================================================" -ForegroundColor Cyan

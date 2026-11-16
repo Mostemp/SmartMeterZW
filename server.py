@@ -8,7 +8,8 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-DATABASE = 'smartmeter.db'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE = os.path.join(BASE_DIR, 'smartmeter.db')
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
@@ -27,24 +28,30 @@ def init_db():
                 unit_balance REAL DEFAULT 45.72,
                 last_updated REAL NOT NULL,
                 tamper_triggered_time REAL DEFAULT 0,
-                usage_history TEXT DEFAULT '12.4,10.1,13.8,9.5,11.2,14.0,10.8'
+                usage_history TEXT DEFAULT '12.4,10.1,13.8,9.5,11.2,14.0,10.8',
+                address TEXT DEFAULT 'Unknown'
             )
         ''')
         # Seed default users if table is empty
         cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(users)")
+        columns = [row[1] for row in cursor.fetchall()]
+        if 'address' not in columns:
+            conn.execute("ALTER TABLE users ADD COLUMN address TEXT DEFAULT 'Unknown'")
+        
         cursor.execute("SELECT COUNT(*) FROM users")
         if cursor.fetchone()[0] == 0:
             print("Pre-seeding default demo users...")
             now = time.time()
             # Demo User 1: admin (Original pin 1234)
             cursor.execute(
-                "INSERT INTO users (username, password, meter_number, unit_balance, last_updated) VALUES (?, ?, ?, ?, ?)",
-                ("admin", "1234", "1234567890", 45.72, now)
+                "INSERT INTO users (username, password, meter_number, unit_balance, last_updated, address) VALUES (?, ?, ?, ?, ?, ?)",
+                ("admin", "1234", "1234567890", 45.72, now, "25 Samora Machel Ave, Harare")
             )
             # Demo User 2: user1
             cursor.execute(
-                "INSERT INTO users (username, password, meter_number, unit_balance, last_updated) VALUES (?, ?, ?, ?, ?)",
-                ("user1", "password", "9876543210", 120.50, now)
+                "INSERT INTO users (username, password, meter_number, unit_balance, last_updated, address) VALUES (?, ?, ?, ?, ?, ?)",
+                ("user1", "password", "9876543210", 120.50, now, "12 Main St, Harare")
             )
             conn.commit()
             print("Pre-seeding complete.")
@@ -72,8 +79,8 @@ def get_user_by_request():
             conn.close()
             return dict(user)
             
-    # Fallback to the first user (usually admin, meter 1234567890)
-    cursor.execute("SELECT * FROM users ORDER BY id LIMIT 1")
+    # Fallback to the most recently updated active user (e.g. actively used in mobile app)
+    cursor.execute("SELECT * FROM users ORDER BY last_updated DESC LIMIT 1")
     user = cursor.fetchone()
     conn.close()
     if user:
@@ -116,12 +123,23 @@ def get_status():
     if not user:
         return jsonify({"error": "No users found in database"}), 404
         
+    if user["meter_number"].startswith("GUEST"):
+        return jsonify({
+            "username": user["username"],
+            "meter_number": user["meter_number"],
+            "unit_balance": 0.0,
+            "consumption_kw": 0.0,
+            "tamper_alert": False,
+            "voltage": 0.0,
+            "status": "GUEST"
+        })
+        
     drain_balance(user)
     consumption = get_simulated_consumption()
 
-    # Check if tamper was triggered within the last 8 seconds
+    # Check if tamper was triggered within the last 15 seconds (guarantees phone 5s polling catches it)
     tamper_time = user.get('tamper_triggered_time', 0)
-    tamper = (time.time() - tamper_time) < 8
+    tamper = (time.time() - tamper_time) < 15
 
     return jsonify({
         "username": user["username"],
@@ -139,6 +157,9 @@ def trigger_tamper():
     if not user:
         return jsonify({"error": "User not found"}), 404
         
+    if user["meter_number"].startswith("GUEST"):
+        return jsonify({"success": False, "message": "Cannot trigger tamper alert on guest account"}), 400
+        
     user['tamper_triggered_time'] = time.time()
     update_user_state(user)
     print(f"TAMPER ALERT triggered for meter {user['meter_number']}!")
@@ -149,6 +170,9 @@ def get_history():
     user = get_user_by_request()
     if not user:
         return jsonify({"error": "User not found"}), 404
+        
+    if user["meter_number"].startswith("GUEST"):
+        return jsonify({"history": []})
         
     # Parse history values
     history_str = user.get('usage_history', '12.4,10.1,13.8,9.5,11.2,14.0,10.8')
@@ -194,21 +218,47 @@ def topup_zig(amount):
         "new_balance": user["unit_balance"]
     })
 
+@app.route('/api/consume/<int:amount>', methods=['POST'])
+def consume_units(amount):
+    user = get_user_by_request()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    user["unit_balance"] = max(0.0, round(user["unit_balance"] - amount, 2))
+    update_user_state(user)
+    return jsonify({
+        "success": True,
+        "units_consumed": amount,
+        "new_balance": user["unit_balance"]
+    })
+
+@app.route('/api/reset_units', methods=['POST'])
+def reset_units():
+    user = get_user_by_request()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+        
+    user["unit_balance"] = 50.00
+    update_user_state(user)
+    return jsonify({
+        "success": True,
+        "new_balance": user["unit_balance"]
+    })
+
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json() or {}
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
-    meter_number = data.get('meter_number', '').strip()
     
-    if not username or not password or not meter_number:
-        return jsonify({"success": False, "message": "Missing username, password, or meter number"}), 400
+    if not username or not password:
+        return jsonify({"success": False, "message": "Missing username or password"}), 400
         
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT * FROM users WHERE username = ? AND password = ? AND meter_number = ?",
-        (username, password, meter_number)
+        "SELECT * FROM users WHERE username = ? AND password = ?",
+        (username, password)
     )
     user = cursor.fetchone()
     conn.close()
@@ -225,7 +275,7 @@ def login():
             }
         })
     else:
-        return jsonify({"success": False, "message": "Invalid username, password, or meter number"}), 401
+        return jsonify({"success": False, "message": "Invalid username or password"}), 401
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -233,23 +283,69 @@ def register():
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
     meter_number = data.get('meter_number', '').strip()
+    address = data.get('address', 'Unknown').strip()
     
-    if not username or not password or not meter_number:
-        return jsonify({"success": False, "message": "Missing username, password, or meter number"}), 400
+    if not username or not password:
+        return jsonify({"success": False, "message": "Missing username or password"}), 400
+        
+    is_guest = False
+    if not meter_number:
+        is_guest = True
+        meter_number = f"GUEST_{random.randint(1000000000, 9999999999)}"
         
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        initial_balance = 0.00 if is_guest else 50.00
         cursor.execute(
-            "INSERT INTO users (username, password, meter_number, unit_balance, last_updated) VALUES (?, ?, ?, ?, ?)",
-            (username, password, meter_number, 50.00, time.time())
+            "INSERT INTO users (username, password, meter_number, unit_balance, last_updated, address) VALUES (?, ?, ?, ?, ?, ?)",
+            (username, password, meter_number, initial_balance, time.time(), address)
         )
         conn.commit()
         conn.close()
-        return jsonify({"success": True, "message": "Registration successful. Please log in!"})
+        reg_type = "Non-Meter Guest" if is_guest else "Meter Owner"
+        return jsonify({
+            "success": True, 
+            "message": f"Registration successful as {reg_type}! Please log in."
+        })
     except sqlite3.IntegrityError:
         conn.close()
         return jsonify({"success": False, "message": "Username or Meter Number already registered!"}), 400
+
+@app.route('/api/meter_info/<meter_number>', methods=['GET'])
+def get_meter_info(meter_number):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE meter_number = ?", (meter_number,))
+    user = cursor.fetchone()
+    conn.close()
+    if user:
+        user_dict = dict(user)
+        return jsonify({
+            "success": True,
+            "username": user_dict["username"],
+            "meter_number": user_dict["meter_number"],
+            "address": user_dict.get("address", "Unknown")
+        })
+    else:
+        return jsonify({"success": False, "message": "Meter not found"}), 404
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, PUT, DELETE'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-Meter-Number, Authorization'
+    response.headers['Access-Control-Allow-Private-Network'] = 'true'
+    return response
+
+@app.route('/')
+@app.route('/meter')
+def serve_meter():
+    meter_path = os.path.join(os.path.dirname(__file__), 'meter.html')
+    if os.path.exists(meter_path):
+        with open(meter_path, 'r', encoding='utf-8') as f:
+            return f.read(), 200, {'Content-Type': 'text/html; charset=utf-8'}
+    return "meter.html not found", 404
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

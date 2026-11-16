@@ -144,3 +144,8 @@ cython_debug/
 # OS files
 .DS_Store
 Thumbs.db
+
+*.db
+SmartMeterZW/
+*.apk
+

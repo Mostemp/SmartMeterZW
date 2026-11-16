@@ -1,45 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SMARTMETER ZW — Advanced Simulation</title>
   <link
-    href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <style>
     :root {
-      --green: #00ffa3;
-      --green-dim: #00c87a;
-      --red: #ff3b3b;
-      --orange: #ffaa00;
-      --blue: #00cfff;
-      --bg: #050a0f;
-      --panel: #080f17;
-      --border: rgba(0, 255, 163, 0.15);
-      --glow: 0 0 20px rgba(0, 255, 163, 0.3);
+      /* Light Mode Palette (Default) */
+      --theme: 'light';
+      --bg: #f1f5f9;
+      --panel: #ffffff;
+      --panel-elevated: #f8fafc;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-faint: #94a3b8;
+      --border: #e2e8f0;
+      --border-accent: rgba(5, 150, 105, 0.3);
+      --green: #059669;
+      --green-dim: #047857;
+      --green-light: #ecfdf5;
+      --red: #dc2626;
+      --red-light: #fef2f2;
+      --orange: #d97706;
+      --orange-light: #fffbeb;
+      --blue: #0284c7;
+      --blue-light: #f0f9ff;
+      --glow: 0 4px 14px rgba(5, 150, 105, 0.2);
+      --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03);
       --font-display: 'Orbitron', monospace;
       --font-mono: 'Share Tech Mono', monospace;
       --font-body: 'Rajdhani', sans-serif;
+    }
+
+    [data-theme="dark"] {
+      /* Dark Mode Palette */
+      --theme: 'dark';
+      --bg: #050a0f;
+      --panel: #080f17;
+      --panel-elevated: rgba(0, 255, 163, 0.04);
+      --text-main: #00ffa3;
+      --text-muted: rgba(0, 255, 163, 0.6);
+      --text-faint: rgba(0, 255, 163, 0.3);
+      --border: rgba(0, 255, 163, 0.15);
+      --border-accent: rgba(0, 255, 163, 0.35);
+      --green: #00ffa3;
+      --green-dim: #00c87a;
+      --green-light: rgba(0, 255, 163, 0.08);
+      --red: #ff3b3b;
+      --red-light: rgba(255, 59, 59, 0.1);
+      --orange: #ffaa00;
+      --orange-light: rgba(255, 170, 0, 0.1);
+      --blue: #00cfff;
+      --blue-light: rgba(0, 207, 255, 0.1);
+      --glow: 0 0 20px rgba(0, 255, 163, 0.3);
+      --shadow-card: none;
     }
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
     }
 
     body {
       background: var(--bg);
-      color: var(--green);
+      color: var(--text-main);
       font-family: var(--font-body);
       min-height: 100vh;
       overflow-x: hidden;
-      cursor: crosshair;
+      cursor: default;
     }
 
-    /* Scanline overlay */
+    /* Subtle industrial scanline overlay */
     body::before {
       content: '';
       position: fixed;
@@ -47,23 +84,30 @@
       background: repeating-linear-gradient(0deg,
           transparent,
           transparent 2px,
-          rgba(0, 0, 0, 0.08) 2px,
-          rgba(0, 0, 0, 0.08) 4px);
+          rgba(0, 0, 0, 0.02) 2px,
+          rgba(0, 0, 0, 0.02) 4px);
       pointer-events: none;
       z-index: 9999;
     }
 
-    /* Grid background */
+    /* Architectural grid background */
     body::after {
       content: '';
       position: fixed;
       inset: 0;
       background-image:
+        linear-gradient(rgba(5, 150, 105, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(5, 150, 105, 0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    [data-theme="dark"] body::after {
+      background-image:
         linear-gradient(rgba(0, 255, 163, 0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 255, 163, 0.03) 1px, transparent 1px);
       background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
     }
 
     .wrapper {
@@ -82,6 +126,7 @@
       padding: 16px 24px;
       border: 1px solid var(--border);
       background: var(--panel);
+      box-shadow: var(--shadow-card);
       margin-bottom: 20px;
       position: relative;
       clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
@@ -93,7 +138,7 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 2px;
+      height: 3px;
       background: linear-gradient(90deg, transparent, var(--green), transparent);
       animation: scanH 3s linear infinite;
     }
@@ -118,6 +163,8 @@
       width: 48px;
       height: 48px;
       border: 2px solid var(--green);
+      background: var(--green-light);
+      color: var(--green);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -127,14 +174,13 @@
     }
 
     @keyframes borderPulse {
-
       0%,
       100% {
-        box-shadow: 0 0 10px rgba(0, 255, 163, 0.3);
+        box-shadow: 0 0 8px rgba(5, 150, 105, 0.2);
       }
 
       50% {
-        box-shadow: 0 0 25px rgba(0, 255, 163, 0.8), inset 0 0 10px rgba(0, 255, 163, 0.1);
+        box-shadow: 0 0 20px rgba(5, 150, 105, 0.4), inset 0 0 10px rgba(5, 150, 105, 0.1);
       }
     }
 
@@ -146,20 +192,47 @@
       font-size: 18px;
       font-weight: 900;
       letter-spacing: 3px;
+      color: var(--text-main);
     }
 
     .logo-sub {
       font-size: 10px;
-      color: rgba(0, 255, 163, 0.5);
+      color: var(--text-muted);
       letter-spacing: 4px;
+      font-weight: 600;
     }
 
     .header-right {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
       font-family: var(--font-mono);
       font-size: 12px;
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      background: var(--panel-elevated);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--green);
+      background: var(--green-light);
+      color: var(--green);
+      box-shadow: var(--glow);
     }
 
     .status-badge {
@@ -168,10 +241,12 @@
       gap: 6px;
       padding: 6px 14px;
       border: 1px solid var(--green);
+      background: var(--green-light);
       color: var(--green);
       font-size: 11px;
+      font-weight: 700;
       letter-spacing: 2px;
-      animation: borderPulse 2s ease-in-out infinite;
+      border-radius: 4px;
     }
 
     .status-dot {
@@ -183,21 +258,21 @@
     }
 
     @keyframes blink {
-
       0%,
       100% {
-        opacity: 1
+        opacity: 1;
       }
 
       50% {
-        opacity: 0
+        opacity: 0;
       }
     }
 
     .clock {
-      color: rgba(0, 255, 163, 0.6);
+      color: var(--text-muted);
       font-size: 13px;
       letter-spacing: 1px;
+      font-weight: 600;
     }
 
     /* ── Main Grid ── */
@@ -214,6 +289,7 @@
       grid-row: 1 / 3;
       background: var(--panel);
       border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
       padding: 28px;
       position: relative;
       clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
@@ -226,7 +302,7 @@
       right: 20px;
       font-family: var(--font-mono);
       font-size: 10px;
-      color: rgba(0, 255, 163, 0.2);
+      color: var(--text-faint);
       letter-spacing: 2px;
     }
 
@@ -234,9 +310,10 @@
       font-family: var(--font-display);
       font-size: 10px;
       letter-spacing: 4px;
-      color: rgba(0, 255, 163, 0.4);
+      color: var(--text-muted);
       margin-bottom: 20px;
       text-align: center;
+      font-weight: 600;
     }
 
     /* Big Units display */
@@ -249,9 +326,10 @@
     .Units-label {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: rgba(0, 255, 163, 0.4);
+      color: var(--text-muted);
       letter-spacing: 3px;
       margin-bottom: 8px;
+      font-weight: 700;
     }
 
     .Units-value {
@@ -259,39 +337,45 @@
       font-size: 72px;
       font-weight: 900;
       line-height: 1;
-      text-shadow: 0 0 30px rgba(0, 255, 163, 0.8), 0 0 60px rgba(0, 255, 163, 0.3);
+      color: var(--green);
+      text-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
       transition: color 0.5s, text-shadow 0.5s;
       position: relative;
     }
 
+    [data-theme="dark"] .Units-value {
+      text-shadow: 0 0 30px rgba(0, 255, 163, 0.8), 0 0 60px rgba(0, 255, 163, 0.3);
+    }
+
     .Units-value.low {
       color: var(--orange);
-      text-shadow: 0 0 30px rgba(255, 170, 0, 0.8);
+      text-shadow: 0 4px 18px rgba(217, 119, 6, 0.3);
     }
 
     .Units-value.critical {
       color: var(--red);
-      text-shadow: 0 0 30px rgba(255, 59, 59, 0.8);
+      text-shadow: 0 4px 18px rgba(220, 38, 38, 0.35);
       animation: criticalFlash 0.5s step-end infinite;
     }
 
     @keyframes criticalFlash {
-
       0%,
       100% {
-        opacity: 1
+        opacity: 1;
       }
 
       50% {
-        opacity: 0.4
+        opacity: 0.35;
       }
     }
 
     .Units-unit {
       font-family: var(--font-display);
-      font-size: 16px;
-      color: rgba(0, 255, 163, 0.5);
+      font-size: 15px;
+      color: var(--text-muted);
       letter-spacing: 3px;
+      font-weight: 700;
+      margin-top: 6px;
     }
 
     /* Arc meter */
@@ -305,6 +389,31 @@
       overflow: visible;
     }
 
+    .arc-track {
+      stroke: var(--border);
+    }
+
+    .arc-label-0 {
+      fill: var(--red);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .arc-label-50 {
+      fill: var(--orange);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .arc-label-100 {
+      fill: var(--green);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
     /* Stats row */
     .stats-row {
       display: grid;
@@ -314,41 +423,42 @@
     }
 
     .stat-box {
-      background: rgba(0, 255, 163, 0.04);
-      border: 1px solid rgba(0, 255, 163, 0.12);
+      background: var(--panel-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
       padding: 12px;
       text-align: center;
       position: relative;
-      transition: border-color 0.3s;
+      transition: all 0.25s;
     }
 
     .stat-box:hover {
-      border-color: rgba(0, 255, 163, 0.4);
+      border-color: var(--green);
+      box-shadow: var(--shadow-card);
     }
 
     .stat-label {
       font-family: var(--font-mono);
       font-size: 9px;
-      color: rgba(0, 255, 163, 0.4);
+      color: var(--text-muted);
       letter-spacing: 2px;
       margin-bottom: 6px;
+      font-weight: 700;
     }
 
     .stat-value {
       font-family: var(--font-display);
-      font-size: 20px;
-      font-weight: 700;
-      text-shadow: 0 0 10px rgba(0, 255, 163, 0.5);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--green);
     }
 
     .stat-value.blue {
       color: var(--blue);
-      text-shadow: 0 0 10px rgba(0, 207, 255, 0.5);
     }
 
     .stat-value.orange {
       color: var(--orange);
-      text-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
     }
 
     /* Load bar */
@@ -361,15 +471,17 @@
       justify-content: space-between;
       font-family: var(--font-mono);
       font-size: 10px;
-      color: rgba(0, 255, 163, 0.4);
+      color: var(--text-muted);
       letter-spacing: 2px;
       margin-bottom: 8px;
+      font-weight: 700;
     }
 
     .load-bar-track {
-      height: 8px;
-      background: rgba(0, 255, 163, 0.08);
-      border: 1px solid rgba(0, 255, 163, 0.15);
+      height: 9px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 4px;
       position: relative;
       overflow: hidden;
     }
@@ -377,6 +489,7 @@
     .load-bar-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--green-dim), var(--green));
+      border-radius: 3px;
       transition: width 1s ease;
       position: relative;
     }
@@ -388,19 +501,18 @@
       top: 0;
       bottom: 0;
       width: 20px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45));
       animation: shimmer 1.5s ease-in-out infinite;
     }
 
     @keyframes shimmer {
-
       0%,
       100% {
-        opacity: 0
+        opacity: 0;
       }
 
       50% {
-        opacity: 1
+        opacity: 1;
       }
     }
 
@@ -412,16 +524,18 @@
     .section-label {
       font-family: var(--font-mono);
       font-size: 9px;
-      color: rgba(0, 255, 163, 0.4);
+      color: var(--text-muted);
       letter-spacing: 3px;
       margin-bottom: 8px;
+      font-weight: 700;
     }
 
     .wave-canvas {
       width: 100%;
       height: 60px;
-      border: 1px solid rgba(0, 255, 163, 0.1);
-      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      background: var(--panel-elevated);
+      border-radius: 4px;
     }
 
     /* Control buttons */
@@ -433,51 +547,54 @@
 
     .ctrl-btn {
       padding: 10px 6px;
-      border: 1px solid rgba(0, 255, 163, 0.25);
-      background: rgba(0, 255, 163, 0.04);
+      border: 1px solid var(--border-accent);
+      background: var(--panel);
       color: var(--green);
       font-family: var(--font-mono);
-      font-size: 9px;
+      font-size: 10px;
+      font-weight: 700;
       letter-spacing: 1px;
       cursor: pointer;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
       transition: all 0.2s;
       text-align: center;
     }
 
     .ctrl-btn:hover {
-      background: rgba(0, 255, 163, 0.12);
+      background: var(--green-light);
       border-color: var(--green);
       box-shadow: var(--glow);
     }
 
     .ctrl-btn.red {
-      border-color: rgba(255, 59, 59, 0.3);
+      border-color: rgba(220, 38, 38, 0.35);
       color: var(--red);
     }
 
     .ctrl-btn.red:hover {
-      background: rgba(255, 59, 59, 0.1);
+      background: var(--red-light);
       border-color: var(--red);
-      box-shadow: 0 0 20px rgba(255, 59, 59, 0.3);
+      box-shadow: 0 2px 10px rgba(220, 38, 38, 0.2);
     }
 
     .ctrl-btn.orange {
-      border-color: rgba(255, 170, 0, 0.3);
+      border-color: rgba(217, 119, 6, 0.35);
       color: var(--orange);
     }
 
     .ctrl-btn.orange:hover {
-      background: rgba(255, 170, 0, 0.1);
+      background: var(--orange-light);
       border-color: var(--orange);
     }
 
     .ctrl-btn.blue {
-      border-color: rgba(0, 207, 255, 0.3);
+      border-color: rgba(2, 132, 199, 0.35);
       color: var(--blue);
     }
 
     .ctrl-btn.blue:hover {
-      background: rgba(0, 207, 255, 0.1);
+      background: var(--blue-light);
       border-color: var(--blue);
     }
 
@@ -492,6 +609,8 @@
     .alert-panel {
       background: var(--panel);
       border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      border-radius: 4px;
       padding: 16px;
     }
 
@@ -499,10 +618,11 @@
       font-family: var(--font-display);
       font-size: 10px;
       letter-spacing: 4px;
-      color: rgba(0, 255, 163, 0.5);
+      color: var(--text-muted);
+      font-weight: 700;
       margin-bottom: 12px;
       padding-bottom: 8px;
-      border-bottom: 1px solid rgba(0, 255, 163, 0.1);
+      border-bottom: 1px solid var(--border);
     }
 
     .alert-list {
@@ -514,7 +634,7 @@
     }
 
     .alert-list::-webkit-scrollbar {
-      width: 3px;
+      width: 4px;
     }
 
     .alert-list::-webkit-scrollbar-track {
@@ -522,16 +642,19 @@
     }
 
     .alert-list::-webkit-scrollbar-thumb {
-      background: rgba(0, 255, 163, 0.3);
+      background: var(--border);
+      border-radius: 4px;
     }
 
     .alert-item {
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      padding: 8px;
-      border-left: 2px solid var(--green);
-      background: rgba(0, 255, 163, 0.04);
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green);
+      background: var(--panel-elevated);
       animation: slideIn 0.3s ease;
       font-size: 13px;
     }
@@ -550,40 +673,45 @@
 
     .alert-item.warn {
       border-left-color: var(--orange);
-      background: rgba(255, 170, 0, 0.04);
+      background: var(--orange-light);
     }
 
     .alert-item.danger {
       border-left-color: var(--red);
-      background: rgba(255, 59, 59, 0.06);
+      background: var(--red-light);
     }
 
     .alert-time {
       font-family: var(--font-mono);
-      font-size: 9px;
-      color: rgba(0, 255, 163, 0.3);
+      font-size: 10px;
+      color: var(--text-muted);
       white-space: nowrap;
-      margin-top: 2px;
+      margin-top: 1px;
+      font-weight: 600;
     }
 
     .alert-msg {
       font-size: 12px;
-      color: rgba(0, 255, 163, 0.7);
+      color: var(--text-main);
       line-height: 1.4;
     }
 
     .alert-item.warn .alert-msg {
-      color: rgba(255, 170, 0, 0.8);
+      color: #b45309;
+      font-weight: 500;
     }
 
     .alert-item.danger .alert-msg {
-      color: rgba(255, 59, 59, 0.9);
+      color: #b91c1c;
+      font-weight: 500;
     }
 
     /* Topology map */
     .topo-panel {
       background: var(--panel);
       border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      border-radius: 4px;
       padding: 16px;
       flex: 1;
     }
@@ -592,10 +720,104 @@
       width: 100%;
     }
 
+    .topo-grid-box {
+      fill: var(--blue-light);
+      stroke: var(--blue);
+      stroke-width: 1px;
+    }
+
+    .topo-grid-title {
+      fill: var(--blue);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .topo-grid-sub {
+      fill: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 8px;
+    }
+
+    .topo-cloud-box {
+      fill: var(--green-light);
+      stroke: var(--green);
+      stroke-width: 1px;
+    }
+
+    .topo-cloud-title {
+      fill: var(--green);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .topo-cloud-sub {
+      fill: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 8px;
+    }
+
+    .topo-meter-box {
+      fill: var(--panel-elevated);
+      stroke: var(--green);
+      stroke-width: 1.5px;
+    }
+
+    .topo-meter-title {
+      fill: var(--green);
+      font-family: var(--font-display);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .topo-meter-sub {
+      fill: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 8px;
+    }
+
+    .topo-app-box {
+      fill: var(--orange-light);
+      stroke: var(--orange);
+      stroke-width: 1px;
+    }
+
+    .topo-app-title {
+      fill: var(--orange);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .topo-line-blue {
+      stroke: var(--blue);
+      opacity: 0.6;
+    }
+
+    .topo-line-green {
+      stroke: var(--green);
+      opacity: 0.6;
+    }
+
+    .topo-line-orange {
+      stroke: var(--orange);
+      opacity: 0.6;
+    }
+
+    .topo-signal-text {
+      fill: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 600;
+    }
+
     /* Load shedding panel */
     .loadshed-panel {
       background: var(--panel);
-      border: 1px solid rgba(255, 170, 0, 0.2);
+      border: 1px solid rgba(217, 119, 6, 0.3);
+      box-shadow: var(--shadow-card);
+      border-radius: 4px;
       padding: 16px;
     }
 
@@ -605,7 +827,6 @@
     }
 
     @keyframes dangerBorder {
-
       0%,
       100% {
         border-color: var(--red);
@@ -614,7 +835,7 @@
 
       50% {
         border-color: var(--red);
-        box-shadow: 0 0 20px rgba(255, 59, 59, 0.3);
+        box-shadow: 0 0 16px rgba(220, 38, 38, 0.3);
       }
     }
 
@@ -629,7 +850,8 @@
       font-family: var(--font-display);
       font-size: 10px;
       letter-spacing: 3px;
-      color: rgba(255, 170, 0, 0.6);
+      color: var(--orange);
+      font-weight: 700;
     }
 
     .ls-badge {
@@ -637,26 +859,29 @@
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 2px;
+      border-radius: 4px;
+      font-weight: 700;
     }
 
     .ls-badge.off {
-      background: rgba(0, 255, 163, 0.1);
+      background: var(--green-light);
       color: var(--green);
-      border: 1px solid rgba(0, 255, 163, 0.3);
+      border: 1px solid rgba(5, 150, 105, 0.3);
     }
 
     .ls-badge.on {
-      background: rgba(255, 59, 59, 0.15);
+      background: var(--red-light);
       color: var(--red);
-      border: 1px solid rgba(255, 59, 59, 0.5);
+      border: 1px solid rgba(220, 38, 38, 0.4);
       animation: blink 0.8s step-end infinite;
     }
 
     .ls-schedule {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: rgba(255, 170, 0, 0.5);
+      color: var(--text-muted);
       line-height: 1.8;
+      font-weight: 600;
     }
 
     /* Tamper overlay */
@@ -664,21 +889,20 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(255, 0, 0, 0.08);
+      background: rgba(220, 38, 38, 0.12);
       z-index: 100;
       pointer-events: none;
       animation: tamperFlash 0.3s step-end infinite;
     }
 
     @keyframes tamperFlash {
-
       0%,
       100% {
-        opacity: 1
+        opacity: 1;
       }
 
       50% {
-        opacity: 0
+        opacity: 0;
       }
     }
 
@@ -699,7 +923,9 @@
       font-family: var(--font-display);
       font-size: 14px;
       letter-spacing: 4px;
+      font-weight: 800;
       z-index: 200;
+      box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
       animation: tamperFlash 0.5s step-end infinite;
     }
 
@@ -707,12 +933,13 @@
       display: block;
     }
 
-    /* Power cut overlay */
+    /* Power cut overlay (Blackout simulation) */
     .powercut-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: #000;
+      background: #0b1120;
+      color: #ffffff;
       z-index: 500;
       align-items: center;
       justify-content: center;
@@ -727,40 +954,45 @@
     .powercut-text {
       font-family: var(--font-display);
       font-size: 28px;
-      color: rgba(255, 59, 59, 0.8);
+      color: #ef4444;
       letter-spacing: 6px;
+      font-weight: 800;
       animation: criticalFlash 1s step-end infinite;
     }
 
     .powercut-sub {
       font-family: var(--font-mono);
       font-size: 13px;
-      color: rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.65);
       letter-spacing: 2px;
     }
 
     .restore-btn {
       margin-top: 20px;
       padding: 12px 32px;
-      border: 1px solid rgba(0, 255, 163, 0.4);
-      background: transparent;
-      color: var(--green);
+      border: 1px solid var(--green);
+      background: var(--green);
+      color: #ffffff;
       font-family: var(--font-display);
       font-size: 12px;
+      font-weight: 700;
       letter-spacing: 3px;
       cursor: pointer;
+      border-radius: 4px;
       transition: all 0.3s;
     }
 
     .restore-btn:hover {
-      background: rgba(0, 255, 163, 0.1);
-      box-shadow: var(--glow);
+      background: var(--green-dim);
+      box-shadow: 0 0 20px rgba(5, 150, 105, 0.5);
     }
 
     /* ── Fingerprint Scanner ── */
     .fp-panel {
-      border: 1px solid rgba(0,255,163,0.15);
+      border: 1px solid var(--border);
       background: var(--panel);
+      box-shadow: var(--shadow-card);
+      border-radius: 4px;
       padding: 16px;
       margin-top: 12px;
       position: relative;
@@ -775,8 +1007,9 @@
       padding: 0 8px;
       font-family: var(--font-mono);
       font-size: 10px;
-      color: rgba(0,255,163,0.5);
+      color: var(--text-muted);
       letter-spacing: 3px;
+      font-weight: 700;
     }
 
     .fp-scanner {
@@ -791,8 +1024,8 @@
       width: 100px;
       height: 100px;
       border-radius: 50%;
-      border: 2px solid rgba(0,255,163,0.3);
-      background: rgba(0,255,163,0.03);
+      border: 2px solid var(--border-accent);
+      background: var(--panel-elevated);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -802,41 +1035,72 @@
       overflow: hidden;
     }
 
+    .fp-icon {
+      color: var(--green);
+      opacity: 0.65;
+      transition: all 0.3s;
+    }
+
     .fp-circle:hover {
-      border-color: rgba(0,255,163,0.7);
-      box-shadow: 0 0 20px rgba(0,255,163,0.2);
+      border-color: var(--green);
+      box-shadow: var(--glow);
+    }
+
+    .fp-circle:hover .fp-icon {
+      opacity: 0.95;
     }
 
     .fp-circle.scanning {
-      border-color: rgba(0,207,255,0.8);
-      box-shadow: 0 0 30px rgba(0,207,255,0.4);
+      border-color: var(--blue);
+      box-shadow: 0 0 24px rgba(2, 132, 199, 0.35);
       animation: fpPulse 0.8s ease-in-out infinite;
     }
 
+    .fp-circle.scanning .fp-icon {
+      color: var(--blue);
+      opacity: 0.9;
+    }
+
     .fp-circle.success {
-      border-color: rgba(0,255,163,0.9);
-      box-shadow: 0 0 40px rgba(0,255,163,0.6);
+      border-color: var(--green);
+      box-shadow: 0 0 24px rgba(5, 150, 105, 0.35);
+    }
+
+    .fp-circle.success .fp-icon {
+      color: var(--green);
+      opacity: 1;
     }
 
     .fp-circle.denied {
-      border-color: rgba(255,59,59,0.9);
-      box-shadow: 0 0 30px rgba(255,59,59,0.5);
+      border-color: var(--red);
+      box-shadow: 0 0 24px rgba(220, 38, 38, 0.35);
+    }
+
+    .fp-circle.denied .fp-icon {
+      color: var(--red);
+      opacity: 1;
     }
 
     @keyframes fpPulse {
-      0%, 100% { box-shadow: 0 0 15px rgba(0,207,255,0.3); }
-      50% { box-shadow: 0 0 40px rgba(0,207,255,0.7); }
+      0%,
+      100% {
+        box-shadow: 0 0 12px rgba(2, 132, 199, 0.25);
+      }
+
+      50% {
+        box-shadow: 0 0 28px rgba(2, 132, 199, 0.5);
+      }
     }
 
     .fp-scan-line {
       position: absolute;
       width: 100%;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(0,207,255,0.8), transparent);
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--blue), transparent);
       top: 0;
       left: 0;
       display: none;
-      box-shadow: 0 0 8px rgba(0,207,255,0.8);
+      box-shadow: 0 0 8px var(--blue);
     }
 
     .fp-circle.scanning .fp-scan-line {
@@ -845,30 +1109,45 @@
     }
 
     @keyframes fpScan {
-      0% { top: 0%; }
-      100% { top: 100%; }
+      0% {
+        top: 0%;
+      }
+
+      100% {
+        top: 100%;
+      }
     }
 
     .fp-status {
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 3px;
-      color: rgba(0,255,163,0.4);
+      color: var(--text-muted);
       text-align: center;
       min-height: 16px;
+      font-weight: 700;
       transition: color 0.3s;
     }
 
-    .fp-status.scanning { color: rgba(0,207,255,0.8); }
-    .fp-status.success  { color: var(--green); }
-    .fp-status.denied   { color: var(--red); }
+    .fp-status.scanning {
+      color: var(--blue);
+    }
+
+    .fp-status.success {
+      color: var(--green);
+    }
+
+    .fp-status.denied {
+      color: var(--red);
+    }
 
     .fp-info {
       font-family: var(--font-mono);
       font-size: 9px;
-      color: rgba(0,255,163,0.25);
+      color: var(--text-faint);
       letter-spacing: 2px;
       text-align: center;
+      font-weight: 600;
     }
 
     .fp-access-row {
@@ -883,27 +1162,29 @@
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 2px;
-      border: 1px solid rgba(255,59,59,0.35);
-      background: rgba(255,59,59,0.05);
-      color: rgba(255,59,59,0.8);
+      font-weight: 700;
+      border: 1px solid rgba(220, 38, 38, 0.35);
+      background: var(--red-light);
+      color: var(--red);
       cursor: pointer;
+      border-radius: 4px;
       transition: all 0.2s;
     }
 
     .fp-access-btn:hover {
-      background: rgba(255,59,59,0.15);
-      box-shadow: 0 0 10px rgba(255,59,59,0.2);
+      background: rgba(220, 38, 38, 0.15);
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
     }
 
     .fp-access-btn.allow {
-      border-color: rgba(0,255,163,0.35);
-      background: rgba(0,255,163,0.05);
-      color: rgba(0,255,163,0.8);
+      border-color: rgba(5, 150, 105, 0.35);
+      background: var(--green-light);
+      color: var(--green);
     }
 
     .fp-access-btn.allow:hover {
-      background: rgba(0,255,163,0.15);
-      box-shadow: 0 0 10px rgba(0,255,163,0.2);
+      background: rgba(5, 150, 105, 0.18);
+      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
     }
 
     /* Footer */
@@ -914,12 +1195,11 @@
       align-items: center;
       font-family: var(--font-mono);
       font-size: 10px;
-      color: rgba(0, 255, 163, 0.2);
+      color: var(--text-muted);
       letter-spacing: 2px;
-      padding: 10px 0;
-      border-top: 1px solid rgba(0, 255, 163, 0.08);
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
     }
-
 
     /* Responsive */
     @media (max-width: 768px) {
@@ -937,6 +1217,17 @@
 
       .controls {
         grid-template-columns: repeat(2, 1fr);
+      }
+
+      .header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
+      .header-right {
+        width: 100%;
+        justify-content: space-between;
       }
     }
   </style>
@@ -967,6 +1258,10 @@
         </div>
       </div>
       <div class="header-right">
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Switch Light/Dark Mode">
+          <span id="themeToggleIcon">🌙</span>
+          <span id="themeToggleText">DARK MODE</span>
+        </button>
         <div class="clock" id="clock">--:--:--</div>
         <div class="status-badge">
           <div class="status-dot" id="statusDot"></div>
@@ -994,13 +1289,13 @@
           <svg class="arc-svg" width="280" height="140" viewBox="0 0 280 140">
             <defs>
               <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#ff3b3b" />
-                <stop offset="40%" style="stop-color:#ffaa00" />
-                <stop offset="100%" style="stop-color:#00ffa3" />
+                <stop offset="0%" style="stop-color:var(--red)" />
+                <stop offset="40%" style="stop-color:var(--orange)" />
+                <stop offset="100%" style="stop-color:var(--green)" />
               </linearGradient>
             </defs>
             <!-- Track -->
-            <path d="M 20 130 A 120 120 0 0 1 260 130" fill="none" stroke="rgba(0,255,163,0.08)" stroke-width="12"
+            <path class="arc-track" d="M 20 130 A 120 120 0 0 1 260 130" fill="none" stroke-width="12"
               stroke-linecap="round" />
             <!-- Fill -->
             <path id="arcFill" d="M 20 130 A 120 120 0 0 1 260 130" fill="none" stroke="url(#arcGrad)" stroke-width="12"
@@ -1008,12 +1303,11 @@
               style="transition: stroke-dashoffset 1s ease" />
             <!-- Needle marker -->
             <circle id="arcDot" cx="260" cy="130" r="8" fill="var(--green)"
-              style="filter: drop-shadow(0 0 6px var(--green)); transition: all 1s ease" />
+              style="filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); transition: all 1s ease" />
             <!-- Labels -->
-            <text x="14" y="148" fill="rgba(255,59,59,0.6)" font-family="'Share Tech Mono'" font-size="10">0</text>
-            <text x="130" y="20" fill="rgba(255,170,0,0.6)" font-family="'Share Tech Mono'" font-size="10"
-              text-anchor="middle">50</text>
-            <text x="250" y="148" fill="rgba(0,255,163,0.6)" font-family="'Share Tech Mono'" font-size="10">100+</text>
+            <text class="arc-label-0" x="14" y="148">0</text>
+            <text class="arc-label-50" x="130" y="20" text-anchor="middle">50</text>
+            <text class="arc-label-100" x="250" y="148">100+</text>
           </svg>
         </div>
 
@@ -1083,59 +1377,45 @@
           <div class="panel-title">NETWORK TOPOLOGY</div>
           <svg class="topo-svg" viewBox="0 0 280 160">
             <!-- ZESA Grid -->
-            <rect x="10" y="10" width="70" height="36" rx="4" fill="rgba(0,207,255,0.08)" stroke="rgba(0,207,255,0.4)"
-              stroke-width="1" />
-            <text x="45" y="25" text-anchor="middle" fill="rgba(0,207,255,0.8)" font-family="'Share Tech Mono'"
-              font-size="9">ZESA GRID</text>
-            <text x="45" y="38" text-anchor="middle" fill="rgba(0,207,255,0.5)" font-family="'Share Tech Mono'"
-              font-size="8">HARARE</text>
+            <rect class="topo-grid-box" x="10" y="10" width="70" height="36" rx="4" />
+            <text class="topo-grid-title" x="45" y="25" text-anchor="middle">ZESA GRID</text>
+            <text class="topo-grid-sub" x="45" y="38" text-anchor="middle">HARARE</text>
 
             <!-- AWS Cloud -->
-            <rect x="200" y="10" width="70" height="36" rx="4" fill="rgba(0,255,163,0.08)" stroke="rgba(0,255,163,0.3)"
-              stroke-width="1" />
-            <text x="235" y="25" text-anchor="middle" fill="rgba(0,255,163,0.8)" font-family="'Share Tech Mono'"
-              font-size="9">AWS CLOUD</text>
-            <text x="235" y="38" text-anchor="middle" fill="rgba(0,255,163,0.5)" font-family="'Share Tech Mono'"
-              font-size="8">FIREBASE</text>
+            <rect class="topo-cloud-box" x="200" y="10" width="70" height="36" rx="4" />
+            <text class="topo-cloud-title" x="235" y="25" text-anchor="middle">AWS CLOUD</text>
+            <text class="topo-cloud-sub" x="235" y="38" text-anchor="middle">FIREBASE</text>
 
             <!-- Smart Meter (center) -->
-            <rect x="95" y="60" width="90" height="44" rx="4" fill="rgba(0,255,163,0.12)" stroke="var(--green)"
-              stroke-width="1.5" />
-            <text x="140" y="78" text-anchor="middle" fill="var(--green)" font-family="'Orbitron'" font-size="9"
-              font-weight="700">SMARTMETER ZW</text>
-            <text x="140" y="92" text-anchor="middle" fill="rgba(0,255,163,0.6)" font-family="'Share Tech Mono'"
-              font-size="8">ZW-2024-00142</text>
+            <rect class="topo-meter-box" x="95" y="60" width="90" height="44" rx="4" />
+            <text class="topo-meter-title" x="140" y="78" text-anchor="middle">SMARTMETER ZW</text>
+            <text class="topo-meter-sub" x="140" y="92" text-anchor="middle">ZW-2024-00142</text>
 
             <!-- Mobile App -->
-            <rect x="95" y="124" width="90" height="30" rx="4" fill="rgba(255,170,0,0.08)" stroke="rgba(255,170,0,0.4)"
-              stroke-width="1" />
-            <text x="140" y="143" text-anchor="middle" fill="rgba(255,170,0,0.8)" font-family="'Share Tech Mono'"
-              font-size="9">MOBILE APP</text>
+            <rect class="topo-app-box" x="95" y="124" width="90" height="30" rx="4" />
+            <text class="topo-app-title" x="140" y="143" text-anchor="middle">MOBILE APP</text>
 
             <!-- Lines -->
-            <line x1="80" y1="28" x2="95" y2="82" stroke="rgba(0,207,255,0.3)" stroke-width="1"
-              stroke-dasharray="4,3" />
-            <line x1="200" y1="28" x2="185" y2="82" stroke="rgba(0,255,163,0.3)" stroke-width="1"
-              stroke-dasharray="4,3" />
-            <line x1="140" y1="104" x2="140" y2="124" stroke="rgba(255,170,0,0.3)" stroke-width="1"
-              stroke-dasharray="4,3" />
+            <line class="topo-line-blue" x1="80" y1="28" x2="95" y2="82" stroke-width="1.5" stroke-dasharray="4,3" />
+            <line class="topo-line-green" x1="200" y1="28" x2="185" y2="82" stroke-width="1.5" stroke-dasharray="4,3" />
+            <line class="topo-line-orange" x1="140" y1="104" x2="140" y2="124" stroke-width="1.5" stroke-dasharray="4,3" />
 
             <!-- Animated dots on lines -->
-            <circle r="3" fill="rgba(0,207,255,0.8)">
+            <circle r="3.5" fill="var(--blue)">
               <animateMotion dur="2s" repeatCount="indefinite">
                 <mpath href="#path1" />
               </animateMotion>
             </circle>
             <path id="path1" d="M 80 28 L 95 82" fill="none" />
 
-            <circle r="3" fill="rgba(0,255,163,0.8)">
+            <circle r="3.5" fill="var(--green)">
               <animateMotion dur="1.5s" repeatCount="indefinite">
                 <mpath href="#path2" />
               </animateMotion>
             </circle>
             <path id="path2" d="M 185 82 L 200 28" fill="none" />
 
-            <circle r="3" fill="rgba(255,170,0,0.8)">
+            <circle r="3.5" fill="var(--orange)">
               <animateMotion dur="1.8s" repeatCount="indefinite">
                 <mpath href="#path3" />
               </animateMotion>
@@ -1143,8 +1423,7 @@
             <path id="path3" d="M 140 104 L 140 124" fill="none" />
 
             <!-- Signal strength indicator -->
-            <text x="140" y="158" text-anchor="middle" fill="rgba(0,255,163,0.3)" font-family="'Share Tech Mono'"
-              font-size="8">4G LTE ████ EXCELLENT</text>
+            <text class="topo-signal-text" x="140" y="158" text-anchor="middle">4G LTE ████ EXCELLENT</text>
           </svg>
         </div>
 
@@ -1158,7 +1437,7 @@
             STAGE 2 · GROUP 5 · HARARE<br>
             NEXT: 18:00 – 20:30<br>
             AFTER: 02:00 – 04:30<br>
-            <span style="color:rgba(0,255,163,0.3)">SOURCE: ZESA SCHEDULE</span>
+            <span style="color:var(--text-muted)">SOURCE: ZESA SCHEDULE</span>
           </div>
         </div>
 
@@ -1168,13 +1447,13 @@
             <div class="fp-circle" id="fpCircle" onclick="startFpScan()">
               <div class="fp-scan-line"></div>
               <svg class="fp-icon" id="fpIcon" width="60" height="60" viewBox="0 0 60 60" fill="none">
-                <path d="M30 8 C18 8, 10 17, 10 28" stroke="rgba(0,255,163,0.4)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-                <path d="M30 8 C42 8, 50 17, 50 28" stroke="rgba(0,255,163,0.4)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-                <path d="M17 22 C17 14, 23 10, 30 10 C37 10, 43 14, 43 22" stroke="rgba(0,255,163,0.35)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-                <path d="M14 30 C14 20, 21 14, 30 14 C39 14, 46 20, 46 30" stroke="rgba(0,255,163,0.3)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-                <path d="M18 36 C18 26, 23 20, 30 20 C37 20, 42 26, 42 36" stroke="rgba(0,255,163,0.28)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-                <path d="M22 42 C22 33, 26 27, 30 27 C34 27, 38 33, 38 42" stroke="rgba(0,255,163,0.25)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-                <path d="M26 48 C26 40, 28 36, 30 36 C32 36, 34 40, 34 48" stroke="rgba(0,255,163,0.2)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                <path d="M30 8 C18 8, 10 17, 10 28" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
+                <path d="M30 8 C42 8, 50 17, 50 28" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
+                <path d="M17 22 C17 14, 23 10, 30 10 C37 10, 43 14, 43 22" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
+                <path d="M14 30 C14 20, 21 14, 30 14 C39 14, 46 20, 46 30" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
+                <path d="M18 36 C18 26, 23 20, 30 20 C37 20, 42 26, 42 36" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
+                <path d="M22 42 C22 33, 26 27, 30 27 C34 27, 38 33, 38 42" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
+                <path d="M26 48 C26 40, 28 36, 30 36 C32 36, 34 40, 34 48" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
               </svg>
             </div>
 
@@ -1193,13 +1472,13 @@
 
     <div class="footer">
       <span>SMARTMETER ZW · UZ RESEARCH INNOVATION 2026</span>
-      <span id="serverStatus">SERVER: 10.64.14.177:5000</span>
+      <span id="serverStatus">SERVER: 10.118.22.177:5000</span>
       <span id="pollStatus">POLLING LIVE DATA...</span>
     </div>
   </div>
 
   <script>
-    // ── State ──────────────────────────────────────────────────
+    // ── 1. State Object (Declared First) ───────────────────────
     const state = {
       balance: 45.72,
       consumption: 2.4,
@@ -1213,47 +1492,129 @@
       serverOnline: false,
     };
 
-    const BASE_URL = 'http://10.64.14.177:5000';
+    const BASE_URL = 'http://192.168.137.1:5000';
+
+    // Candidate server URLs to auto-detect and sync with Flask
+    let activeServerUrl = null;
+    const CANDIDATE_URLS = [
+      (window.location.protocol.startsWith('http') && window.location.port === '5000') ? window.location.origin : null,
+      'http://127.0.0.1:5000',
+      'http://localhost:5000',
+      BASE_URL,
+      'http://192.168.100.61:5000',
+      'http://192.168.137.1:5000'
+    ].filter(Boolean);
 
     const urlParams = new URLSearchParams(window.location.search);
-    const meterNum = urlParams.get('meter') || urlParams.get('meter_number') || '';
+    let meterNum = urlParams.get('meter') || urlParams.get('meter_number') || '';
 
-    // ── Clock ──────────────────────────────────────────────────
+    function getApiUrl(endpoint) {
+      const base = activeServerUrl || BASE_URL;
+      const sep = endpoint.includes('?') ? '&' : '?';
+      return meterNum ? (base + endpoint + sep + 'meter_number=' + encodeURIComponent(meterNum)) : (base + endpoint);
+    }
+
+    // ── 2. Theme Management ────────────────────────────────────
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      try { localStorage.setItem('smartmeter_theme', theme); } catch (_) {}
+      const icon = document.getElementById('themeToggleIcon');
+      const text = document.getElementById('themeToggleText');
+      if (theme === 'dark') {
+        if (icon) icon.textContent = '☀️';
+        if (text) text.textContent = 'LIGHT MODE';
+      } else {
+        if (icon) icon.textContent = '🌙';
+        if (text) text.textContent = 'DARK MODE';
+      }
+      if (typeof drawWave === 'function') drawWave();
+      if (typeof updateDisplay === 'function') updateDisplay();
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      setTheme(current === 'light' ? 'dark' : 'light');
+    }
+
+    // ── 3. Clock ───────────────────────────────────────────────
     function updateClock() {
       const now = new Date();
-      document.getElementById('clock').textContent =
-        now.toLocaleTimeString('en-ZW', { hour12: false });
-      document.getElementById('bootTime').textContent =
-        now.toLocaleTimeString('en-ZW', { hour12: false });
+      const clockEl = document.getElementById('clock');
+      if (clockEl) {
+        clockEl.textContent = now.toLocaleTimeString('en-ZW', { hour12: false });
+      }
+      const bootEl = document.getElementById('bootTime');
+      if (bootEl && (bootEl.textContent === '--:--:--' || bootEl.textContent.trim() === '')) {
+        bootEl.textContent = now.toLocaleTimeString('en-ZW', { hour12: false });
+      }
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // ── Fetch from Flask ───────────────────────────────────────
+    // ── 4. Fetch from Flask ────────────────────────────────────
     async function fetchData() {
-      try {
-        const url = `${BASE_URL}/api/status` + (meterNum ? `?meter_number=${meterNum}` : '');
-        const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
-        const d = await res.json();
+      const candidates = activeServerUrl
+        ? [activeServerUrl, ...CANDIDATE_URLS.filter(u => u !== activeServerUrl)]
+        : CANDIDATE_URLS;
+
+      let fetchedData = null;
+      let workingBase = null;
+
+      for (const base of candidates) {
+        try {
+          const url = meterNum
+            ? (base + '/api/status?meter_number=' + encodeURIComponent(meterNum))
+            : (base + '/api/status');
+          const res = await fetch(url, { signal: AbortSignal.timeout(2000) });
+          if (res.ok) {
+            fetchedData = await res.json();
+            workingBase = base;
+            break;
+          }
+        } catch (_) {}
+      }
+
+      if (fetchedData) {
+        activeServerUrl = workingBase;
+        const d = fetchedData;
         
         if (d.meter_number) {
-          document.getElementById('meterLabel').innerHTML = `PREPAID SMART METER · METER NO: ${d.meter_number} · SINGLE PHASE`;
+          const userTag = d.username ? (' (' + d.username.toUpperCase() + ')') : '';
+          const labelEl = document.getElementById('meterLabel');
+          if (labelEl) {
+            labelEl.innerHTML = 'PREPAID SMART METER · METER: ' + d.meter_number + userTag + ' · SINGLE PHASE';
+          }
         }
-        state.balance = d.unit_balance;
-        state.consumption = d.consumption_kw;
-        state.voltage = d.voltage;
-        state.current = parseFloat((d.consumption_kw * 1000 / d.voltage).toFixed(1));
+        state.balance = Number(d.unit_balance);
+        state.consumption = Number(d.consumption_kw);
+        state.voltage = Number(d.voltage);
+        state.current = parseFloat((d.consumption_kw * 1000 / (d.voltage || 220)).toFixed(1));
         state.load = Math.min(100, Math.round((d.consumption_kw / 6) * 100));
         state.serverOnline = true;
-        document.getElementById('pollStatus').textContent = 'LIVE · ' + new Date().toLocaleTimeString();
-        document.getElementById('serverStatus').style.color = 'rgba(0,255,163,0.4)';
-        if (d.tamper_alert && !state.tamper) triggerTamper();
+        
+        const pollEl = document.getElementById('pollStatus');
+        if (pollEl) pollEl.textContent = 'LIVE SYNCED · ' + new Date().toLocaleTimeString();
+        
+        const serverEl = document.getElementById('serverStatus');
+        if (serverEl) {
+          serverEl.textContent = 'SERVER: ' + workingBase.replace(/^https?:\/\//, '');
+          serverEl.style.color = 'var(--green)';
+        }
+
+        // Sync tamper state from server
+        if (d.tamper_alert && !state.tamper) {
+          showTamperUI();
+        } else if (!d.tamper_alert && state.tamper && !state.localTamperActive) {
+          hideTamperUI();
+        }
+
         if (d.status === 'LOW_BALANCE') triggerLowBalance();
-      } catch (e) {
+      } else {
         state.serverOnline = false;
-        document.getElementById('pollStatus').textContent = 'SERVER OFFLINE — SIMULATION MODE';
-        document.getElementById('serverStatus').style.color = 'rgba(255,59,59,0.5)';
-        // Simulate locally when server is offline
+        const pollEl = document.getElementById('pollStatus');
+        if (pollEl) pollEl.textContent = 'SERVER OFFLINE — SIMULATION MODE';
+        const serverEl = document.getElementById('serverStatus');
+        if (serverEl) serverEl.style.color = 'var(--red)';
         simulateLocally();
       }
       updateDisplay();
@@ -1269,73 +1630,105 @@
       state.voltage = parseFloat((220 + (Math.random() - 0.5) * 8).toFixed(1));
       state.current = parseFloat((state.consumption * 1000 / state.voltage).toFixed(1));
       state.load = Math.min(100, Math.round((state.consumption / 6) * 100));
-      // Drain balance slowly
       state.balance = Math.max(0, parseFloat((state.balance - state.consumption / 3600 * 5).toFixed(2)));
     }
 
-    // ── Update Display ─────────────────────────────────────────
+    // ── 5. Update Display ──────────────────────────────────────
     function updateDisplay() {
       if (state.loadShed) return;
 
       const UnitsEl = document.getElementById('UnitsValue');
-      UnitsEl.textContent = state.balance.toFixed(2);
-      UnitsEl.className = 'Units-value' + (state.balance < 2 ? ' critical' : state.balance < 5 ? ' low' : '');
+      if (UnitsEl) {
+        UnitsEl.textContent = (typeof state.balance === 'number' ? state.balance.toFixed(2) : '0.00');
+        UnitsEl.className = 'Units-value' + (state.balance < 2 ? ' critical' : state.balance < 5 ? ' low' : '');
+      }
 
-      document.getElementById('consumptionVal').textContent = state.consumption;
-      document.getElementById('voltageVal').textContent = state.voltage.toFixed(0);
-      document.getElementById('currentVal').textContent = state.current;
-      document.getElementById('loadPct').textContent = state.load + '%';
-      document.getElementById('loadBar').style.width = state.load + '%';
+      const consEl = document.getElementById('consumptionVal');
+      if (consEl) consEl.textContent = state.consumption;
 
-      // Color load bar
+      const voltEl = document.getElementById('voltageVal');
+      if (voltEl) voltEl.textContent = Math.round(state.voltage);
+
+      const currEl = document.getElementById('currentVal');
+      if (currEl) currEl.textContent = state.current;
+
+      const loadPctEl = document.getElementById('loadPct');
+      if (loadPctEl) loadPctEl.textContent = state.load + '%';
+
       const bar = document.getElementById('loadBar');
-      if (state.load > 80) bar.style.background = 'linear-gradient(90deg, #cc0000, var(--red))';
-      else if (state.load > 60) bar.style.background = 'linear-gradient(90deg, #cc7700, var(--orange))';
-      else bar.style.background = 'linear-gradient(90deg, var(--green-dim), var(--green))';
+      if (bar) {
+        bar.style.width = state.load + '%';
+        if (state.load > 80) bar.style.background = 'linear-gradient(90deg, #dc2626, var(--red))';
+        else if (state.load > 60) bar.style.background = 'linear-gradient(90deg, #d97706, var(--orange))';
+        else bar.style.background = 'linear-gradient(90deg, var(--green-dim), var(--green))';
+      }
 
       // Arc gauge (balance 0-100Units mapped to arc)
-      const pct = Math.min(1, state.balance / 100);
+      const pct = Math.min(1, Math.max(0, state.balance / 100));
       const arcLen = 377;
-      document.getElementById('arcFill').style.strokeDashoffset = arcLen * (1 - pct);
+      const arcFill = document.getElementById('arcFill');
+      if (arcFill) {
+        arcFill.style.strokeDashoffset = arcLen * (1 - pct);
+      }
 
       // Move arc dot
       const angle = Math.PI * (1 - pct); // 180deg to 0deg
       const cx = 140 + 120 * Math.cos(Math.PI - angle);
       const cy = 130 - 120 * Math.sin(Math.PI - angle);
       const dot = document.getElementById('arcDot');
-      dot.setAttribute('cx', cx.toFixed(1));
-      dot.setAttribute('cy', cy.toFixed(1));
-      dot.setAttribute('fill', state.balance < 2 ? 'var(--red)' : state.balance < 5 ? 'var(--orange)' : 'var(--green)');
+      if (dot) {
+        dot.setAttribute('cx', cx.toFixed(1));
+        dot.setAttribute('cy', cy.toFixed(1));
+        dot.setAttribute('fill', state.balance < 2 ? 'var(--red)' : state.balance < 5 ? 'var(--orange)' : 'var(--green)');
+      }
     }
 
-    // ── Waveform Canvas ────────────────────────────────────────
+    // ── 6. Waveform Canvas ─────────────────────────────────────
     function drawWave() {
       const canvas = document.getElementById('waveCanvas');
+      if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      canvas.width = canvas.offsetWidth;
+      canvas.width = canvas.offsetWidth || 300;
       canvas.height = 60;
       const W = canvas.width, H = canvas.height;
 
       ctx.clearRect(0, 0, W, H);
 
+      const isLight = (document.documentElement.getAttribute('data-theme') || 'light') === 'light';
+
+      // Subtle engineering grid for canvas
+      ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 255, 163, 0.08)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2);
+      ctx.moveTo(W / 4, 0); ctx.lineTo(W / 4, H);
+      ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H);
+      ctx.moveTo((3 * W) / 4, 0); ctx.lineTo((3 * W) / 4, H);
+      ctx.stroke();
+
       if (state.loadShed) {
-        ctx.strokeStyle = 'rgba(255,59,59,0.3)';
+        ctx.strokeStyle = isLight ? 'rgba(220, 38, 38, 0.6)' : 'rgba(255, 59, 59, 0.4)';
         ctx.setLineDash([5, 5]);
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2);
         ctx.stroke();
         return;
       }
 
-      const amp = state.tamper ? H * 0.45 : H * 0.35;
+      const amp = state.tamper ? H * 0.42 : H * 0.32;
       const freq = state.tamper ? 0.06 : 0.04;
       const noise = state.tamper ? 6 : 0;
 
-      ctx.strokeStyle = state.tamper ? 'rgba(255,59,59,0.8)' : 'rgba(0,255,163,0.8)';
-      ctx.shadowColor = state.tamper ? 'var(--red)' : 'var(--green)';
-      ctx.shadowBlur = 8;
-      ctx.lineWidth = 1.5;
+      const waveColor = state.tamper
+        ? (isLight ? '#dc2626' : '#ff3b3b')
+        : (isLight ? '#059669' : '#00ffa3');
+
+      ctx.strokeStyle = waveColor;
+      ctx.shadowColor = waveColor;
+      ctx.shadowBlur = isLight ? 4 : 8;
+      ctx.lineWidth = 2;
       ctx.setLineDash([]);
 
       ctx.beginPath();
@@ -1351,41 +1744,55 @@
 
     setInterval(drawWave, 50);
 
-    // ── Alert Log ──────────────────────────────────────────────
-    function addAlert(msg, type = 'info') {
+    // ── 7. Alert Log ───────────────────────────────────────────
+    function addAlert(msg, type) {
       const list = document.getElementById('alertList');
+      if (!list) return;
       const time = new Date().toLocaleTimeString('en-ZW', { hour12: false });
       const div = document.createElement('div');
-      div.className = `alert-item${type === 'warn' ? ' warn' : type === 'danger' ? ' danger' : ''}`;
-      div.innerHTML = `<div><div class="alert-time">${time}</div><div class="alert-msg">${msg}</div></div>`;
+      div.className = 'alert-item' + (type === 'warn' ? ' warn' : type === 'danger' ? ' danger' : '');
+      div.innerHTML = '<div><div class="alert-time">' + time + '</div><div class="alert-msg">' + msg + '</div></div>';
       list.insertBefore(div, list.firstChild);
-      // Keep max 20
       while (list.children.length > 20) list.removeChild(list.lastChild);
     }
 
-    // ── Simulation Controls ────────────────────────────────────
-    function triggerTamper() {
-      if (state.tamper) return;
+    // ── 8. Tamper & Simulation Controls ────────────────────────
+    function showTamperUI() {
       state.tamper = true;
-
-      // Notify Flask server — app will pick it up within 5 seconds
-      const tamperUrl = `${BASE_URL}/api/tamper` + (meterNum ? `?meter_number=${meterNum}` : '');
-      fetch(tamperUrl, { method: 'POST' }).catch(() => { });
-
-      document.getElementById('tamperOverlay').classList.add('active');
-      document.getElementById('tamperBanner').classList.add('active');
-      addAlert('⚠ TAMPER DETECTED — Enclosure breach on meter ZW-2024-00142', 'danger');
-      addAlert('ZESA Security notified — Ref #TMP-' + Math.floor(Math.random() * 9000 + 1000), 'danger');
-
-      setTimeout(() => {
-        state.tamper = false;
-        document.getElementById('tamperOverlay').classList.remove('active');
-        document.getElementById('tamperBanner').classList.remove('active');
-        addAlert('Tamper alert cleared. Monitoring resumed.', 'warn');
-      }, 8000);
+      const overlay = document.getElementById('tamperOverlay');
+      if (overlay) overlay.classList.add('active');
+      const banner = document.getElementById('tamperBanner');
+      if (banner) banner.classList.add('active');
     }
 
-    // ── Fingerprint Scanner ────────────────────────────────────
+    function hideTamperUI() {
+      state.tamper = false;
+      state.localTamperActive = false;
+      const overlay = document.getElementById('tamperOverlay');
+      if (overlay) overlay.classList.remove('active');
+      const banner = document.getElementById('tamperBanner');
+      if (banner) banner.classList.remove('active');
+    }
+
+    function triggerTamper() {
+      if (state.localTamperActive) return;
+      state.localTamperActive = true;
+      showTamperUI();
+
+      addAlert('⚠ TAMPER DETECTED — Enclosure breach on meter', 'danger');
+      addAlert('ZESA Security alerted — Ref #TMP-' + Math.floor(Math.random() * 9000 + 1000), 'danger');
+
+      // Notify Flask server
+      const tamperUrl = getApiUrl('/api/tamper');
+      fetch(tamperUrl, { method: 'POST' }).catch(() => { });
+
+      setTimeout(() => {
+        hideTamperUI();
+        addAlert('Tamper alert cleared. Normal monitoring resumed.', 'warn');
+      }, 12000);
+    }
+
+    // ── 9. Fingerprint Scanner ─────────────────────────────────
     let fpBusy = false;
 
     function startFpScan() {
@@ -1395,13 +1802,13 @@
       const status = document.getElementById('fpStatus');
       const info   = document.getElementById('fpInfo');
 
-      // Scanning state
-      circle.className = 'fp-circle scanning';
-      status.className = 'fp-status scanning';
-      status.textContent = 'SCANNING...';
-      info.textContent   = 'READING BIOMETRIC DATA';
+      if (circle) circle.className = 'fp-circle scanning';
+      if (status) {
+        status.className = 'fp-status scanning';
+        status.textContent = 'SCANNING...';
+      }
+      if (info) info.textContent = 'READING BIOMETRIC DATA';
 
-      // After 2.5s, auto-resolve as success (click manually for choice)
       setTimeout(() => {
         if (fpBusy) simulateFp(true);
       }, 2500);
@@ -1414,49 +1821,51 @@
       const info   = document.getElementById('fpInfo');
 
       if (allow) {
-        circle.className = 'fp-circle success';
-        status.className = 'fp-status success';
-        status.textContent = 'ACCESS GRANTED';
-        info.textContent   = 'ENG. J. MOYO · ZESA ID: ZW-ENG-0042';
+        if (circle) circle.className = 'fp-circle success';
+        if (status) {
+          status.className = 'fp-status success';
+          status.textContent = 'ACCESS GRANTED';
+        }
+        if (info) info.textContent = 'ENG. J. MOYO · ZESA ID: ZW-ENG-0042';
         addAlert('Biometric auth: Engineer access granted — J. Moyo ZW-ENG-0042', 'ok');
       } else {
-        circle.className = 'fp-circle denied';
-        status.className = 'fp-status denied';
-        status.textContent = 'ACCESS DENIED';
-        info.textContent   = 'FINGERPRINT NOT RECOGNISED';
+        if (circle) circle.className = 'fp-circle denied';
+        if (status) {
+          status.className = 'fp-status denied';
+          status.textContent = 'ACCESS DENIED';
+        }
+        if (info) info.textContent = 'FINGERPRINT NOT RECOGNISED';
         addAlert('Biometric auth FAILED — Unauthorized fingerprint detected', 'danger');
-        // Trigger tamper since unknown person tried to access
         triggerTamper();
       }
 
-      // Reset after 3 seconds
       setTimeout(() => {
-        circle.className = 'fp-circle';
-        status.className = 'fp-status';
-        status.textContent = 'TOUCH TO SCAN';
-        info.textContent   = 'ENGINEER ACCESS ONLY · ZESA AUTHORIZED';
+        if (circle) circle.className = 'fp-circle';
+        if (status) {
+          status.className = 'fp-status';
+          status.textContent = 'TOUCH TO SCAN';
+        }
+        if (info) info.textContent = 'ENGINEER ACCESS ONLY · ZESA AUTHORIZED';
       }, 3000);
     }
 
     function triggerLowBalance() {
       if (state.balance > 5) state.balance = 4.8;
-
       addAlert('⚠ LOW BALANCE: ' + state.balance.toFixed(2) + ' Units remaining', 'warn');
       addAlert('Top up via EcoCash or ZESA Token to restore supply', 'warn');
       updateDisplay();
     }
 
     function triggerTopup() {
-      const topupUrl = `${BASE_URL}/api/topup/10` + (meterNum ? `?meter_number=${meterNum}` : '');
+      const topupUrl = getApiUrl('/api/topup/10');
       fetch(topupUrl, { method: 'POST' })
         .then(res => res.json())
         .then(data => {
-          state.balance = data.new_balance;
-          addAlert('✓ TOP-UP: +' + data.units_added + ' Units added. New balance: ' + data.new_balance.toFixed(2) + ' Units');
+          state.balance = Number(data.new_balance);
+          addAlert('✓ TOP-UP: +' + data.units_added + ' Units added. New balance: ' + state.balance.toFixed(2) + ' Units');
           updateDisplay();
         })
         .catch(() => {
-          // Fallback local update if server unreachable
           const units = 28.57;
           state.balance = parseFloat((state.balance + units).toFixed(2));
           addAlert('✓ TOP-UP (local): +' + units + ' Units added. New balance: ' + state.balance.toFixed(2) + ' Units');
@@ -1467,27 +1876,31 @@
     let lsCountdown = null;
     function toggleLoadShed() {
       if (!state.loadShed) {
-        // Start load shedding
         state.loadShed = true;
-        document.getElementById('loadshedPanel').classList.add('active');
-        document.getElementById('lsBadge').className = 'ls-badge on';
-        document.getElementById('lsBadge').textContent = 'ACTIVE';
-        document.getElementById('statusDot').style.background = 'var(--red)';
-        document.getElementById('statusText').textContent = 'LOAD SHED';
+        const panel = document.getElementById('loadshedPanel');
+        if (panel) panel.classList.add('active');
+        const badge = document.getElementById('lsBadge');
+        if (badge) {
+          badge.className = 'ls-badge on';
+          badge.textContent = 'ACTIVE';
+        }
+        const dot = document.getElementById('statusDot');
+        if (dot) dot.style.background = 'var(--red)';
+        const statusText = document.getElementById('statusText');
+        if (statusText) statusText.textContent = 'LOAD SHED';
         addAlert('⚡ LOAD SHEDDING STARTED — Stage 2 Group 5', 'danger');
 
-        // Show blackout screen
-        document.getElementById('powercutOverlay').classList.add('active');
+        const cutOverlay = document.getElementById('powercutOverlay');
+        if (cutOverlay) cutOverlay.classList.add('active');
 
-        // Countdown
         let secs = 15;
-        document.getElementById('restoreTimer').textContent = `Auto-restoring in ${secs}s...`;
+        const timer = document.getElementById('restoreTimer');
+        if (timer) timer.textContent = 'Auto-restoring in ' + secs + 's...';
         lsCountdown = setInterval(() => {
           secs--;
-          document.getElementById('restoreTimer').textContent = `Auto-restoring in ${secs}s...`;
+          if (timer) timer.textContent = 'Auto-restoring in ' + secs + 's...';
           if (secs <= 0) restorePower();
         }, 1000);
-
       } else {
         restorePower();
       }
@@ -1496,22 +1909,33 @@
     function restorePower() {
       if (lsCountdown) { clearInterval(lsCountdown); lsCountdown = null; }
       state.loadShed = false;
-      document.getElementById('powercutOverlay').classList.remove('active');
-      document.getElementById('loadshedPanel').classList.remove('active');
-      document.getElementById('lsBadge').className = 'ls-badge off';
-      document.getElementById('lsBadge').textContent = 'INACTIVE';
-      document.getElementById('statusDot').style.background = 'var(--green)';
-      document.getElementById('statusText').textContent = 'ONLINE';
+      const cutOverlay = document.getElementById('powercutOverlay');
+      if (cutOverlay) cutOverlay.classList.remove('active');
+      const panel = document.getElementById('loadshedPanel');
+      if (panel) panel.classList.remove('active');
+      const badge = document.getElementById('lsBadge');
+      if (badge) {
+        badge.className = 'ls-badge off';
+        badge.textContent = 'INACTIVE';
+      }
+      const dot = document.getElementById('statusDot');
+      if (dot) dot.style.background = 'var(--green)';
+      const statusText = document.getElementById('statusText');
+      if (statusText) statusText.textContent = 'ONLINE';
       addAlert('✓ Power restored — Load shedding ended');
       updateDisplay();
     }
 
-    // ── Poll server every 5s ───────────────────────────────────
-    fetchData();
-    setInterval(fetchData, 5000);
+    // ── 10. Startup Initialization ─────────────────────────────
+    let initialTheme = 'light';
+    try { initialTheme = localStorage.getItem('smartmeter_theme') || 'light'; } catch (_) {}
+    setTheme(initialTheme);
 
-    // ── Resize canvas on window resize ────────────────────────
+    fetchData();
+    setInterval(fetchData, 3000);
+
     window.addEventListener('resize', drawWave);
+
   </script>
 </body>
 

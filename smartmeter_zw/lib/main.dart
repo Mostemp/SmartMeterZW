@@ -10,10 +10,17 @@ import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String BASE_URL = 'http://10.64.14.177:5000';
+final ValueNotifier<bool> globalDarkMode = ValueNotifier(true);
+
+Color get kBg => globalDarkMode.value ? const Color(0xFF0A0E1A) : Colors.grey[100]!;
+Color get kCard => globalDarkMode.value ? const Color(0xFF111827) : Colors.white;
+Color get kText => globalDarkMode.value ? Colors.white : Colors.black87;
+Color get kSubText => globalDarkMode.value ? Colors.grey[400]! : Colors.black54;
+Color get kDivider => globalDarkMode.value ? Colors.white10 : Colors.black12;
+
+// Original constants
+const String BASE_URL = 'http://192.168.137.1:5000';
 const Color kGreen = Color(0xFF00D4AA);
-const Color kBg = Color(0xFF0A0E1A);
-const Color kCard = Color(0xFF111827);
 const Color kEcoGreen = Color(0xFF4CAF50);
 
 String currentMeterNumber = '1234567890';
@@ -74,14 +81,24 @@ final List<AppNotification> globalNotifications = [
 class SmartMeterApp extends StatelessWidget {
   const SmartMeterApp({super.key});
   @override
-  Widget build(BuildContext context) => MaterialApp(
-        title: 'SmartMeter ZW',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData.dark().copyWith(
-          scaffoldBackgroundColor: kBg,
-          colorScheme: const ColorScheme.dark(primary: kGreen),
-        ),
-        home: const LoginScreen(),
+  Widget build(BuildContext context) => ValueListenableBuilder<bool>(
+        valueListenable: globalDarkMode,
+        builder: (context, isDark, child) {
+          return MaterialApp(
+            title: 'SmartMeter ZW',
+            debugShowCheckedModeBanner: false,
+            theme: isDark
+                ? ThemeData.dark().copyWith(
+                    scaffoldBackgroundColor: kBg,
+                    colorScheme: const ColorScheme.dark(primary: kGreen),
+                  )
+                : ThemeData.light().copyWith(
+                    scaffoldBackgroundColor: kBg,
+                    colorScheme: const ColorScheme.light(primary: kGreen),
+                  ),
+            home: const LoginScreen(),
+          );
+        },
       );
 }
 
@@ -103,6 +120,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   final _regUsernameCtrl = TextEditingController();
   final _regPasswordCtrl = TextEditingController();
   final _regMeterCtrl = TextEditingController();
+  final _regAddressCtrl = TextEditingController();
+  final _regConfirmPasswordCtrl = TextEditingController();
 
   bool _rememberMe = true;
   bool _hasSavedCredentials = false;
@@ -141,6 +160,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     _regUsernameCtrl.dispose();
     _regPasswordCtrl.dispose();
     _regMeterCtrl.dispose();
+    _regAddressCtrl.dispose();
+    _regConfirmPasswordCtrl.dispose();
     _shakeController.dispose();
     super.dispose();
   }
@@ -191,11 +212,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   Future<void> _login() async {
     final username = _hasSavedCredentials ? _savedUsername : _usernameCtrl.text.trim();
-    final meter = _hasSavedCredentials ? _savedMeterNumber : _meterCtrl.text.trim();
     final password = _passwordCtrl.text;
 
-    if (username.isEmpty || password.isEmpty || meter.isEmpty) {
-      setState(() => _errorMessage = 'All fields are required.');
+    if (username.isEmpty || password.isEmpty) {
+      setState(() => _errorMessage = 'Username and password are required.');
       _shakeController.forward(from: 0.0);
       try { Vibration.vibrate(duration: 20); } catch (_) {}
       return;
@@ -213,7 +233,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         body: jsonEncode({
           'username': username,
           'password': password,
-          'meter_number': meter,
         }),
       ).timeout(const Duration(seconds: 5));
 
@@ -262,9 +281,27 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     final username = _regUsernameCtrl.text.trim();
     final meter = _regMeterCtrl.text.trim();
     final password = _regPasswordCtrl.text;
+    final address = _regAddressCtrl.text.trim();
+    final confirmPassword = _regConfirmPasswordCtrl.text;
 
-    if (username.isEmpty || password.isEmpty || meter.isEmpty) {
-      setState(() => _errorMessage = 'All fields are required.');
+    if (username.isEmpty || password.isEmpty) {
+      setState(() => _errorMessage = 'Username and password are required.');
+      _shakeController.forward(from: 0.0);
+      try { Vibration.vibrate(duration: 20); } catch (_) {}
+      return;
+    }
+
+    if (password != confirmPassword) {
+      setState(() => _errorMessage = 'Passwords do not match.');
+      _shakeController.forward(from: 0.0);
+      try { Vibration.vibrate(duration: 20); } catch (_) {}
+      return;
+    }
+
+    final hasLetters = password.contains(RegExp(r'[a-zA-Z]'));
+    final hasNumbers = password.contains(RegExp(r'[0-9]'));
+    if (!hasLetters || !hasNumbers) {
+      setState(() => _errorMessage = 'Password must be a mixture of numbers and letters.');
       _shakeController.forward(from: 0.0);
       try { Vibration.vibrate(duration: 20); } catch (_) {}
       return;
@@ -283,6 +320,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           'username': username,
           'password': password,
           'meter_number': meter,
+          'address': address,
         }),
       ).timeout(const Duration(seconds: 5));
 
@@ -295,6 +333,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             _usernameCtrl.text = username;
             _meterCtrl.text = meter;
             _passwordCtrl.clear();
+            _regPasswordCtrl.clear();
+            _regConfirmPasswordCtrl.clear();
+            _regAddressCtrl.clear();
             _errorMessage = '';
             _loading = false;
           });
@@ -344,28 +385,28 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.01),
+        color: (globalDarkMode.value ? kText : Colors.black).withOpacity(0.01),
         borderRadius: BorderRadius.circular(14),
       ),
       child: TextField(
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
-        style: const TextStyle(color: Colors.white, fontSize: 14),
+        style: TextStyle(color: kText, fontSize: 14),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+          labelStyle: TextStyle(color: kSubText, fontSize: 13),
           prefixIcon: Icon(icon, color: kGreen, size: 20),
           suffixIcon: suffix,
           filled: true,
-          fillColor: Colors.white.withOpacity(0.04),
+          fillColor: (globalDarkMode.value ? kText : Colors.black).withOpacity(0.04),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+            borderSide: BorderSide(color: (globalDarkMode.value ? kText : Colors.black).withOpacity(0.08)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: kGreen, width: 1.5),
+            borderSide: BorderSide(color: kGreen, width: 1.5),
           ),
         ),
       ),
@@ -375,7 +416,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D1117),
+      backgroundColor: kBg,
       body: Stack(
         children: [
           // Background glows
@@ -439,37 +480,37 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.bolt, color: kGreen, size: 40),
+                        child: Icon(Icons.bolt, color: kGreen, size: 40),
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       
                       Text(
                         _getGreeting(),
                         style: TextStyle(
-                          color: Colors.grey[400],
+                          color: kSubText,
                           fontSize: 14,
                           letterSpacing: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      const Text(
+                      SizedBox(height: 6),
+                      Text(
                         'SmartMeter ZW',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: kText,
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 30),
+                      SizedBox(height: 30),
 
                       // Glassmorphic Input Card
                       Container(
                         padding: const EdgeInsets.all(22),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.03),
+                          color: (globalDarkMode.value ? kText : Colors.black).withOpacity(0.03),
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: Colors.white.withOpacity(0.07)),
+                          border: Border.all(color: (globalDarkMode.value ? kText : Colors.black).withOpacity(0.07)),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.2),
@@ -484,32 +525,32 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               // Saved credentials welcome-back flow
                               Column(
                                 children: [
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: 8),
                                   CircleAvatar(
                                     radius: 30,
                                     backgroundColor: kGreen.withOpacity(0.15),
-                                    child: const Icon(Icons.person, color: kGreen, size: 30),
+                                    child: Icon(Icons.person, color: kGreen, size: 30),
                                   ),
-                                  const SizedBox(height: 14),
+                                  SizedBox(height: 14),
                                   Text(
                                     'Welcome Back,',
-                                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                                    style: TextStyle(color: kSubText, fontSize: 13),
                                   ),
-                                  const SizedBox(height: 2),
+                                  SizedBox(height: 2),
                                   Text(
                                     _savedUsername,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: kText,
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Text(
                                     'Meter: $_savedMeterNumber',
                                     style: TextStyle(color: kGreen.withOpacity(0.8), fontSize: 12),
                                   ),
-                                  const SizedBox(height: 24),
+                                  SizedBox(height: 24),
                                   _buildGlassField(
                                     controller: _passwordCtrl,
                                     label: 'Password',
@@ -528,7 +569,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     alignment: Alignment.centerRight,
                                     child: TextButton(
                                       onPressed: _clearSavedCredentials,
-                                      child: const Text(
+                                      child: Text(
                                         'Log in with another account',
                                         style: TextStyle(color: Colors.grey, fontSize: 11),
                                       ),
@@ -560,7 +601,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                           child: Text(
                                             'LOGIN',
                                             style: TextStyle(
-                                              color: !_isRegistering ? Colors.white : Colors.grey,
+                                              color: !_isRegistering ? kText : Colors.grey,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 14,
                                             ),
@@ -589,7 +630,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                           child: Text(
                                             'REGISTER',
                                             style: TextStyle(
-                                              color: _isRegistering ? Colors.white : Colors.grey,
+                                              color: _isRegistering ? kText : Colors.grey,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 14,
                                             ),
@@ -600,7 +641,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 24),
+                              SizedBox(height: 24),
                               
                               if (!_isRegistering) ...[
                                 // Full Login fields
@@ -608,12 +649,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   controller: _usernameCtrl,
                                   label: 'Username',
                                   icon: Icons.person_outline,
-                                ),
-                                _buildGlassField(
-                                  controller: _meterCtrl,
-                                  label: 'Meter Number',
-                                  icon: Icons.electric_meter_outlined,
-                                  keyboardType: TextInputType.number,
                                 ),
                                 _buildGlassField(
                                   controller: _passwordCtrl,
@@ -642,14 +677,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                         onChanged: (v) => setState(() => _rememberMe = v ?? true),
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8),
                                     Text(
                                       'Remember Login Details',
                                       style: TextStyle(color: Colors.grey[300], fontSize: 12),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
+                                SizedBox(height: 8),
                               ] else ...[
                                 // Register fields
                                 _buildGlassField(
@@ -658,8 +693,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   icon: Icons.person_add_alt_1_outlined,
                                 ),
                                 _buildGlassField(
+                                  controller: _regAddressCtrl,
+                                  label: 'Address',
+                                  icon: Icons.location_on_outlined,
+                                ),
+                                _buildGlassField(
                                   controller: _regMeterCtrl,
-                                  label: 'Register Meter Number',
+                                  label: 'Register Meter Number (Optional)',
                                   icon: Icons.electric_meter_outlined,
                                   keyboardType: TextInputType.number,
                                 ),
@@ -677,18 +717,32 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                                   ),
                                 ),
+                                _buildGlassField(
+                                  controller: _regConfirmPasswordCtrl,
+                                  label: 'Confirm Password',
+                                  icon: Icons.lock_outline,
+                                  obscureText: _obscurePassword,
+                                  suffix: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                      color: Colors.grey,
+                                      size: 18,
+                                    ),
+                                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                  ),
+                                ),
                               ],
                             ],
                             
                             // Error text
                             if (_errorMessage.isNotEmpty) ...[
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12),
                               Text(
                                 _errorMessage,
-                                style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                                style: TextStyle(color: Colors.redAccent, fontSize: 12),
                               ),
                             ],
-                            const SizedBox(height: 20),
+                            SizedBox(height: 20),
                             
                             // Submit button
                             SizedBox(
@@ -709,7 +763,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   shadowColor: kGreen.withOpacity(0.3),
                                 ),
                                 child: _loading
-                                    ? const SizedBox(
+                                    ? SizedBox(
                                         width: 22,
                                         height: 22,
                                         child: CircularProgressIndicator(
@@ -719,7 +773,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                       )
                                     : Text(
                                         _isRegistering ? 'CREATE ACCOUNT' : 'LOG IN',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
                                           letterSpacing: 0.5,
@@ -731,7 +785,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                       ),
                       
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       Text(
                         'Demo: admin / 1234 / 1234567890',
                         style: TextStyle(color: Colors.grey[600], fontSize: 11, letterSpacing: 0.2),
@@ -828,13 +882,21 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = [
-      const DashboardPage(),
-      const HistoryPage(),
-      const TopUpPage(),
-      NotificationsPage(onUpdate: () => setState(() {})),
-      const SettingsPage(),
-    ];
+    final bool isGuest = currentMeterNumber.startsWith('GUEST');
+    final pages = isGuest
+        ? [
+            const DashboardPage(),
+            const TopUpPage(),
+            const ChatbotPage(),
+          ]
+        : [
+            const DashboardPage(),
+            const HistoryPage(),
+            const TopUpPage(),
+            NotificationsPage(onUpdate: () => setState(() {})),
+            const ChatbotPage(),
+            const SettingsPage(),
+          ];
     final unread = globalNotifications.length;
     return Scaffold(
       body: pages[_index],
@@ -843,32 +905,51 @@ class _MainScreenState extends State<MainScreen> {
         indicatorColor: kGreen.withOpacity(0.2),
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.bolt),
-            label: 'Dashboard',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.bar_chart),
-            label: 'History',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.add_card),
-            label: 'Top Up',
-          ),
-          NavigationDestination(
-            icon: Badge(
-              label: Text('$unread'),
-              isLabelVisible: unread > 0,
-              child: const Icon(Icons.notifications),
-            ),
-            label: 'Alerts',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+        destinations: isGuest
+            ? [
+                const NavigationDestination(
+                  icon: Icon(Icons.bolt),
+                  label: 'Home',
+                ),
+                const NavigationDestination(
+                  icon: Icon(Icons.add_card),
+                  label: 'Top Up',
+                ),
+                const NavigationDestination(
+                  icon: Icon(Icons.support_agent),
+                  label: 'Chat Help',
+                ),
+              ]
+            : [
+                const NavigationDestination(
+                  icon: Icon(Icons.bolt),
+                  label: 'Dashboard',
+                ),
+                const NavigationDestination(
+                  icon: Icon(Icons.bar_chart),
+                  label: 'History',
+                ),
+                const NavigationDestination(
+                  icon: Icon(Icons.add_card),
+                  label: 'Top Up',
+                ),
+                NavigationDestination(
+                  icon: Badge(
+                    label: Text('$unread'),
+                    isLabelVisible: unread > 0,
+                    child: Icon(Icons.notifications),
+                  ),
+                  label: 'Alerts',
+                ),
+                const NavigationDestination(
+                  icon: Icon(Icons.support_agent),
+                  label: 'Chat Help',
+                ),
+                const NavigationDestination(
+                  icon: Icon(Icons.settings),
+                  label: 'Settings',
+                ),
+              ],
       ),
     );
   }
@@ -952,7 +1033,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'SmartMeter ZW',
                       style: TextStyle(
                         color: kGreen,
@@ -962,7 +1043,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     Text(
                       'Live Dashboard',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                      style: TextStyle(color: kSubText, fontSize: 13),
                     ),
                   ],
                 ),
@@ -989,7 +1070,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           size: 8,
                           color: _error.isEmpty ? kGreen : Colors.red,
                         ),
-                        const SizedBox(width: 5),
+                        SizedBox(width: 5),
                         Text(
                           _error.isEmpty ? 'ONLINE' : 'OFFLINE',
                           style: TextStyle(
@@ -1004,20 +1085,22 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            if (_loading)
+            SizedBox(height: 24),
+            if (currentMeterNumber.startsWith('GUEST'))
+              _buildGuestDashboard()
+            else if (_loading)
               const Center(child: CircularProgressIndicator(color: kGreen))
             else if (_error.isNotEmpty)
               Center(
                 child: Column(
                   children: [
-                    const Icon(Icons.wifi_off, color: Colors.red, size: 48),
-                    const SizedBox(height: 12),
-                    Text(_error, style: const TextStyle(color: Colors.red)),
-                    const SizedBox(height: 12),
+                    Icon(Icons.wifi_off, color: Colors.red, size: 48),
+                    SizedBox(height: 12),
+                    Text(_error, style: TextStyle(color: Colors.red)),
+                    SizedBox(height: 12),
                     ElevatedButton(
                       onPressed: _fetch,
-                      child: const Text('Retry'),
+                      child: Text('Retry'),
                     ),
                   ],
                 ),
@@ -1033,7 +1116,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     border: Border.all(color: Colors.red),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.warning_amber, color: Colors.red),
                       SizedBox(width: 8),
@@ -1056,7 +1139,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ? '⚠️ Low balance — top up soon!'
                     : 'Balance is healthy',
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -1067,7 +1150,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       color: Colors.blueAccent,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   Expanded(
                     child: _buildCard(
                       label: 'Voltage',
@@ -1078,7 +1161,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               GestureDetector(
                 onTap: () => Navigator.push(
                   context,
@@ -1092,7 +1175,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   subtitle: 'Serial, tariff, account info',
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               GestureDetector(
                 onTap: () => Navigator.push(
                   context,
@@ -1113,12 +1196,12 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.smart_toy, color: kGreen, size: 30),
-                      const SizedBox(width: 12),
+                      Icon(Icons.smart_toy, color: kGreen, size: 30),
+                      SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'AI Assistant',
                             style: TextStyle(
                               color: kGreen,
@@ -1129,14 +1212,14 @@ class _DashboardPageState extends State<DashboardPage> {
                           Text(
                             'Ask about your usage, tips & more',
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: kSubText,
                               fontSize: 12,
                             ),
                           ),
                         ],
                       ),
                       const Spacer(),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward_ios,
                         color: kGreen,
                         size: 16,
@@ -1170,9 +1253,9 @@ class _DashboardPageState extends State<DashboardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 24),
-          const SizedBox(height: 10),
-          Text(label, style: TextStyle(color: Colors.grey[400], fontSize: 12)),
-          const SizedBox(height: 4),
+          SizedBox(height: 10),
+          Text(label, style: TextStyle(color: kSubText, fontSize: 12)),
+          SizedBox(height: 4),
           Text(
             value,
             style: TextStyle(
@@ -1182,12 +1265,116 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
           if (subtitle != null) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Text(
               subtitle,
               style: TextStyle(color: Colors.grey[500], fontSize: 11),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuestDashboard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: kCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: kGreen.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 36,
+            backgroundColor: kGreen.withOpacity(0.1),
+            child: Icon(Icons.support_agent_outlined, color: kGreen, size: 36),
+          ),
+          SizedBox(height: 20),
+          Text(
+            'Welcome Guest!',
+            style: TextStyle(
+              color: kText,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 10),
+          Text(
+            'You are logged in as a Guest User. No active meter is linked to this account.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: kSubText,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          SizedBox(height: 24),
+          Divider(color: kDivider),
+          SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: kGreen, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Buy prepaid electricity tokens for any user',
+                  style: TextStyle(color: Colors.grey[300], fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: kGreen, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Access the smart ZESA rule-based Chatbot',
+                  style: TextStyle(color: Colors.grey[300], fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 24),
+          Text(
+            'To purchase units, switch to the "Top Up" tab and enter the target meter number.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: kGreen.withOpacity(0.8),
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          SizedBox(height: 24),
+          Divider(color: kDivider),
+          SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (_) => false,
+              ),
+              icon: const Icon(Icons.logout, color: Colors.red),
+              label: const Text(
+                'Log Out of Guest Mode',
+                style: TextStyle(color: Colors.red, fontSize: 14),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: Colors.red),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -1206,6 +1393,8 @@ class HistoryPage extends StatefulWidget {
 class _HistoryPageState extends State<HistoryPage> {
   List<Map<String, dynamic>> _history = [];
   bool _loading = true;
+  bool _analyzing = false;
+  bool _showAdvice = false;
 
   @override
   void initState() {
@@ -1241,7 +1430,7 @@ class _HistoryPageState extends State<HistoryPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Usage History',
               style: TextStyle(
                 color: kGreen,
@@ -1251,11 +1440,33 @@ class _HistoryPageState extends State<HistoryPage> {
             ),
             Text(
               'Last 7 days consumption (Units)',
-              style: TextStyle(color: Colors.grey[400], fontSize: 13),
+              style: TextStyle(color: kSubText, fontSize: 13),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: 30),
             if (_loading)
               const Center(child: CircularProgressIndicator(color: kGreen))
+            else if (currentMeterNumber.startsWith('GUEST'))
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.history_toggle_off, color: Colors.grey[600], size: 48),
+                      SizedBox(height: 16),
+                      Text(
+                        'No History in Guest Mode',
+                        style: TextStyle(color: kText, fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Track usage logs by registering with a physical meter.',
+                        style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              )
             else if (_history.isEmpty)
               const Center(
                 child: Text(
@@ -1265,69 +1476,81 @@ class _HistoryPageState extends State<HistoryPage> {
               )
             else ...[
               Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: _history.map((d) {
-                    final unitsValue = (d['Units'] as num).toDouble();
-                    final heightFrac = unitsValue / maxUnits;
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${unitsValue.toStringAsFixed(1)}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 10,
-                          ),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 250,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: _history.map((d) {
+                            final unitsValue = (d['Units'] as num).toDouble();
+                            final heightFrac = unitsValue / maxUnits;
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '${unitsValue.toStringAsFixed(1)}',
+                                  style: TextStyle(
+                                    color: (globalDarkMode.value ? Colors.white70 : Colors.black87),
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 600),
+                                  width: 32,
+                                  height: 180 * heightFrac,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [kGreen, kGreen.withOpacity(0.4)],
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  d['day'],
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList(),
                         ),
-                        const SizedBox(height: 4),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 600),
-                          width: 32,
-                          height: 200 * heightFrac,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [kGreen, kGreen.withOpacity(0.4)],
+                      ),
+                      SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: kCard,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _statItem(
+                              'Total',
+                              '${_history.fold(0.0, (s, e) => s + (e['Units'] as num).toDouble()).toStringAsFixed(1)} Units',
                             ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
+                            _statItem(
+                              'Average',
+                              '${(_history.fold(0.0, (s, e) => s + (e['Units'] as num).toDouble()) / _history.length).toStringAsFixed(1)} Units/day',
+                            ),
+                            _statItem('Peak', '${maxUnits.toStringAsFixed(1)} Units'),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          d['day'],
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: kCard,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _statItem(
-                      'Total',
-                      '${_history.fold(0.0, (s, e) => s + (e['Units'] as num).toDouble()).toStringAsFixed(1)} Units',
-                    ),
-                    _statItem(
-                      'Average',
-                      '${(_history.fold(0.0, (s, e) => s + (e['Units'] as num).toDouble()) / _history.length).toStringAsFixed(1)} Units/day',
-                    ),
-                    _statItem('Peak', '${maxUnits.toStringAsFixed(1)} Units'),
-                  ],
+                      ),
+                      SizedBox(height: 20),
+                      _buildAiAdvisorSection(maxUnits),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -1337,17 +1560,207 @@ class _HistoryPageState extends State<HistoryPage> {
     );
   }
 
+  Widget _buildAiAdvisorSection(double maxUnits) {
+    if (currentMeterNumber.startsWith('GUEST')) return SizedBox();
+
+    final totalUnits = _history.fold(0.0, (s, e) => s + (e['Units'] as num).toDouble());
+    final avgUnits = _history.isEmpty ? 0.0 : totalUnits / _history.length;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: kCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _showAdvice ? kGreen.withOpacity(0.3) : (globalDarkMode.value ? kText : Colors.black).withOpacity(0.1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.psychology, color: kGreen, size: 24),
+              SizedBox(width: 10),
+              Text(
+                'AI Energy Advisor',
+                style: TextStyle(
+                  color: kText,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              if (_showAdvice)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: kGreen.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'AI INSIGHTS',
+                    style: TextStyle(
+                      color: kGreen,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 12),
+          if (!_showAdvice) ...[
+            Text(
+              'Get a personalized AI audit of your 7-day power profile and appliance advice.',
+              style: TextStyle(color: kSubText, fontSize: 13, height: 1.4),
+            ),
+            SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _analyzing ? null : () async {
+                  setState(() => _analyzing = true);
+                  await Future.delayed(const Duration(milliseconds: 1800));
+                  if (mounted) {
+                    setState(() {
+                      _analyzing = false;
+                      _showAdvice = true;
+                    });
+                  }
+                },
+                icon: _analyzing
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: kText,
+                        ),
+                      )
+                    : Icon(Icons.analytics_outlined, color: Colors.black),
+                label: Text(
+                  _analyzing ? 'Analyzing Consumption Patterns...' : 'Analyze Power with AI',
+                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kGreen,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+          ] else ...[
+            Text(
+              'AI AUDIT REPORT & ENERGY COACH:',
+              style: TextStyle(
+                color: kGreen,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+            SizedBox(height: 12),
+            if (avgUnits > 15) ...[
+              _adviceWarningCard(
+                '⚠️ HIGH WEEKLY CONSUMPTION',
+                'Your average daily usage is ${avgUnits.toStringAsFixed(1)} Units. Heavy heating appliances (geysers, stove, heaters) are running for too long.',
+                Colors.orange,
+              ),
+            ] else ...[
+              _adviceWarningCard(
+                '🌱 ECO-FRIENDLY POWER PROFILE',
+                'Excellent! Your average daily usage is ${avgUnits.toStringAsFixed(1)} Units. You are operating well within recommended residential energy saving limits.',
+                kGreen,
+              ),
+            ],
+            SizedBox(height: 12),
+            _adviceWarningCard(
+              '🍳 STOVE OVERCONSUMPTION DETECTED',
+              'Stove & Oven detected consuming 35% of daily draft. Cooking during 5 PM - 8 PM ZESA dinner peaks is draining tokens fast. AI recommends using microwave or pressure cooker for quick meals to save up to 40% cooking energy.',
+              Colors.blueAccent,
+            ),
+            SizedBox(height: 12),
+            _adviceWarningCard(
+              '🚿 GEYSER HEATING ADVICE',
+              'Your water geyser timer overlaps with high Stage 2 loadshedding. Shift geyser heating exclusively to off-peak slots (10 PM to 5 AM) for 30% instant savings.',
+              Colors.purpleAccent,
+            ),
+            SizedBox(height: 16),
+            Divider(color: kDivider),
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Estimated savings: \$${(avgUnits * 0.35 * 30 * 0.25).toStringAsFixed(2)} USD / month',
+                  style: TextStyle(
+                    color: (globalDarkMode.value ? Colors.white70 : Colors.black87),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => _showAdvice = false),
+                  child: Text(
+                    'Reset Audit',
+                    style: TextStyle(color: Colors.grey, fontSize: 11, decoration: TextDecoration.underline),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _adviceWarningCard(String title, String body, Color color) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 6),
+          Text(
+            body,
+            style: TextStyle(
+              color: (globalDarkMode.value ? Colors.white70 : Colors.black87),
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _statItem(String label, String value) => Column(
     children: [
       Text(
         value,
-        style: const TextStyle(
+        style: TextStyle(
           color: kGreen,
           fontWeight: FontWeight.bold,
           fontSize: 15,
         ),
       ),
-      Text(label, style: TextStyle(color: Colors.grey[400], fontSize: 11)),
+      Text(label, style: TextStyle(color: kSubText, fontSize: 11)),
     ],
   );
 }
@@ -1364,22 +1777,46 @@ class TopUpPage extends StatefulWidget {
 class _TopUpPageState extends State<TopUpPage> {
   int _selectedAmount = 5;
   String _selectedCurrency = 'USD';
-  final TextEditingController _phoneController = TextEditingController(
-    text: '077',
-  );
+  String _paymentMethod = 'ecocash'; // 'ecocash' | 'token' | 'paypal'
+  final TextEditingController _phoneController = TextEditingController(text: '077');
+  final TextEditingController _oneMoneyController = TextEditingController(text: '071');
+  final TextEditingController _innbucksController = TextEditingController();
+  final TextEditingController _cardNumberController = TextEditingController();
   final TextEditingController _tokenController = TextEditingController();
-  bool _useToken = false;
+  final TextEditingController _meterController = TextEditingController();
   bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!currentMeterNumber.startsWith('GUEST')) {
+      _meterController.text = currentMeterNumber;
+    }
+  }
 
   @override
   void dispose() {
     _phoneController.dispose();
+    _oneMoneyController.dispose();
+    _innbucksController.dispose();
+    _cardNumberController.dispose();
     _tokenController.dispose();
+    _meterController.dispose();
     super.dispose();
   }
 
   Future<void> _initiatePayment() async {
     final phone = _phoneController.text.trim();
+    final targetMeter = _meterController.text.trim();
+
+    if (targetMeter.isEmpty) {
+      _showEconetPopup(
+        'Missing Meter',
+        'Please enter a target prepaid meter number.',
+        success: false,
+      );
+      return;
+    }
     if (phone.length < 10) {
       _showEconetPopup(
         'Invalid Number',
@@ -1395,14 +1832,44 @@ class _TopUpPageState extends State<TopUpPage> {
         : 'ZiG $_selectedAmount';
     final double unitsToReceive = _selectedAmount / unitRate;
 
+    setState(() => _loading = true);
+    String targetUserName = 'Unknown';
+    String targetAddress = 'Unknown';
+    try {
+      final res = await http.get(Uri.parse('$BASE_URL/api/meter_info/$targetMeter'))
+          .timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        targetUserName = data['username'] ?? 'Unknown';
+        targetAddress = data['address'] ?? 'Unknown';
+      } else {
+        setState(() => _loading = false);
+        _showEconetPopup(
+          'Meter Not Found',
+          'The meter number $targetMeter is not registered.',
+          success: false,
+        );
+        return;
+      }
+    } catch (e) {
+      setState(() => _loading = false);
+      _showEconetPopup(
+        'Connection Error',
+        'Could not verify meter number.',
+        success: false,
+      );
+      return;
+    }
+    setState(() => _loading = false);
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: kCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Confirm Payment',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: kText, fontWeight: FontWeight.bold),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1414,9 +1881,11 @@ class _TopUpPageState extends State<TopUpPage> {
               'Units',
               '${unitsToReceive.toStringAsFixed(2)} Units',
             ),
-            _confirmRow('Meter', 'ZW-2024-00142'),
-            const Divider(color: Colors.grey),
-            const Text(
+            _confirmRow('Meter', targetMeter),
+            _confirmRow('Name', targetUserName),
+            _confirmRow('Address', targetAddress),
+            Divider(color: Colors.grey),
+            Text(
               'By confirming, you authorise EcoCash to deduct this amount from your wallet.',
               style: TextStyle(color: Colors.grey, fontSize: 11),
             ),
@@ -1425,12 +1894,12 @@ class _TopUpPageState extends State<TopUpPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: kEcoGreen),
-            child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+            child: Text('Confirm', style: TextStyle(color: kText)),
           ),
         ],
       ),
@@ -1452,7 +1921,7 @@ class _TopUpPageState extends State<TopUpPage> {
 
       final res = await http.post(
         Uri.parse('$BASE_URL$endpoint'),
-        headers: {'X-Meter-Number': currentMeterNumber},
+        headers: {'X-Meter-Number': targetMeter},
       );
       Navigator.of(context).pop();
       if (res.statusCode == 200) {
@@ -1461,8 +1930,8 @@ class _TopUpPageState extends State<TopUpPage> {
         final balance = data['new_balance'];
 
         final String payoutMessage = _selectedCurrency == 'USD'
-            ? 'Confirmed. \$$_selectedAmount.00 paid to ZESA SmartMeter. '
-            : 'Confirmed. ZiG $_selectedAmount.00 paid to ZESA SmartMeter. ';
+            ? 'Confirmed. \$$_selectedAmount.00 paid to ZESA SmartMeter for meter $targetMeter. '
+            : 'Confirmed. ZiG $_selectedAmount.00 paid to ZESA SmartMeter for meter $targetMeter. ';
 
         final String floatMessage = _selectedCurrency == 'USD'
             ? 'Float bal: \$${(50 - _selectedAmount).toStringAsFixed(2)}.'
@@ -1511,8 +1980,145 @@ class _TopUpPageState extends State<TopUpPage> {
         .replaceAll(RegExp(r'-$'), '');
   }
 
+  // ─── New Payment Flows ───────────────────────────────────────────
+  Future<void> _initiateOneMoney() async {
+    // Simulated OneMoney flow
+    final targetMeter = _meterController.text.trim();
+    if (targetMeter.isEmpty) {
+      _showEconetPopup('Missing Meter', 'Please enter a target prepaid meter number.', success: false);
+      return;
+    }
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(seconds: 1)); // simulate check
+    setState(() => _loading = false);
+    
+    final pinEntered = await _showSimulatedPinDialog('OneMoney PIN', Colors.orange);
+    if (pinEntered != true) return;
+
+    _processSimulatedPayment('OneMoney', Colors.orange, targetMeter);
+  }
+
+  Future<void> _initiateInnBucks() async {
+    final targetMeter = _meterController.text.trim();
+    if (targetMeter.isEmpty) {
+      _showEconetPopup('Missing Meter', 'Please enter a target prepaid meter number.', success: false);
+      return;
+    }
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _loading = false);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: kCard,
+        title: Text('InnBucks Payment', style: TextStyle(color: Colors.blue)),
+        content: Text('Open your InnBucks app to authorize \$$_selectedAmount USD.', style: TextStyle(color: kText)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), style: ElevatedButton.styleFrom(backgroundColor: Colors.blue), child: Text('I have authorized')),
+        ],
+      )
+    );
+    if (confirmed != true) return;
+    _processSimulatedPayment('InnBucks', Colors.blue, targetMeter);
+  }
+
+  Future<void> _initiatePaynow() async {
+    final targetMeter = _meterController.text.trim();
+    if (targetMeter.isEmpty) {
+      _showEconetPopup('Missing Meter', 'Please enter a target prepaid meter number.', success: false);
+      return;
+    }
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(seconds: 2)); // Simulate redirect
+    setState(() => _loading = false);
+    _processSimulatedPayment('Paynow', Colors.purple, targetMeter);
+  }
+
+  Future<void> _initiateCardPayment() async {
+    final targetMeter = _meterController.text.trim();
+    if (targetMeter.isEmpty) {
+      _showEconetPopup('Missing Meter', 'Please enter a target prepaid meter number.', success: false);
+      return;
+    }
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _loading = false);
+
+    final pinEntered = await _showSimulatedPinDialog('Card PIN / OTP', Colors.indigo);
+    if (pinEntered != true) return;
+
+    _processSimulatedPayment('Visa/Mastercard', Colors.indigo, targetMeter);
+  }
+
+  Future<bool?> _showSimulatedPinDialog(String title, Color color) async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: kCard,
+        title: Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+        content: TextField(
+          obscureText: true,
+          keyboardType: TextInputType.number,
+          style: TextStyle(color: kText),
+          decoration: InputDecoration(labelText: 'Enter PIN / OTP', labelStyle: TextStyle(color: Colors.grey)),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), style: ElevatedButton.styleFrom(backgroundColor: color), child: Text('Submit')),
+        ],
+      )
+    );
+  }
+
+  Future<void> _processSimulatedPayment(String method, Color color, String targetMeter) async {
+    setState(() => _loading = true);
+    _showProcessingPopup();
+    await Future.delayed(const Duration(seconds: 2));
+
+    try {
+      final endpoint = _selectedCurrency == 'USD' ? '/api/topup/$_selectedAmount' : '/api/topup_zig/$_selectedAmount';
+      final res = await http.post(Uri.parse('$BASE_URL$endpoint'), headers: {'X-Meter-Number': targetMeter});
+      Navigator.of(context).pop(); // pop processing
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final units = data['units_added'];
+        final balance = data['new_balance'];
+
+        _showEconetPopup(
+          '$method Payment Successful',
+          '${_selectedCurrency == 'USD' ? '\$' : 'ZiG '}$_selectedAmount.00 paid via $method. Token: ${_generateToken()}. +${units.toStringAsFixed(2)} Units.',
+          success: true,
+        );
+        globalNotifications.insert(0, AppNotification(
+          title: '$method Top-up',
+          body: '${_selectedCurrency == 'USD' ? '\$' : 'ZiG '}$_selectedAmount paid. +${units.toStringAsFixed(2)} Units.',
+          time: DateTime.now(),
+          icon: Icons.payment,
+          color: color,
+        ));
+      }
+    } catch (_) {
+      Navigator.of(context).pop();
+      _showEconetPopup('Failed', 'Payment failed.', success: false);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   Future<void> _redeemToken() async {
     final token = _tokenController.text.trim();
+    final targetMeter = _meterController.text.trim();
+    if (targetMeter.isEmpty) {
+      _showEconetPopup(
+        'Missing Meter',
+        'Please enter a target prepaid meter number.',
+        success: false,
+      );
+      return;
+    }
     if (token.length < 10) {
       ScaffoldMessenger.of(
         context,
@@ -1524,7 +2130,7 @@ class _TopUpPageState extends State<TopUpPage> {
     setState(() => _loading = false);
     _showEconetPopup(
       'Token Redeemed',
-      'ZESA Token accepted. 20.00 Units added to meter ZW-2024-00142. Thank you.',
+      'ZESA Token accepted. 20.00 Units added to meter $targetMeter. Thank you.',
       success: true,
     );
   }
@@ -1586,7 +2192,7 @@ class _TopUpPageState extends State<TopUpPage> {
                       horizontal: 16,
                       vertical: 12,
                     ),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: kEcoGreen,
                       borderRadius: BorderRadius.vertical(
                         top: Radius.circular(14),
@@ -1594,16 +2200,16 @@ class _TopUpPageState extends State<TopUpPage> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.signal_cellular_alt,
-                          color: Colors.white,
+                          color: kText,
                           size: 16,
                         ),
-                        const SizedBox(width: 6),
-                        const Text(
+                        SizedBox(width: 6),
+                        Text(
                           'EcoCash by Econet',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: kText,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
@@ -1615,13 +2221,13 @@ class _TopUpPageState extends State<TopUpPage> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: (globalDarkMode.value ? kText : Colors.black).withOpacity(0.2),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
+                          child: Text(
                             'SECURE',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: kText,
                               fontSize: 9,
                               letterSpacing: 1,
                             ),
@@ -1643,30 +2249,30 @@ class _TopUpPageState extends State<TopUpPage> {
                               color: kEcoGreen.withOpacity(0.3),
                             ),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.lock,
                             color: kEcoGreen,
                             size: 28,
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        const Text(
+                        SizedBox(height: 14),
+                        Text(
                           'Enter EcoCash PIN',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: kText,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           'Authorise payment of ${_selectedCurrency == "USD" ? "\$\$_selectedAmount USD" : "ZiG _selectedAmount"}',
                           style: TextStyle(
-                            color: Colors.grey[400],
+                            color: kSubText,
                             fontSize: 12,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: List.generate(
@@ -1693,13 +2299,13 @@ class _TopUpPageState extends State<TopUpPage> {
                           ),
                         ),
                         if (pinError) ...[
-                          const SizedBox(height: 8),
-                          const Text(
+                          SizedBox(height: 8),
+                          Text(
                             'Incorrect PIN. Try again.',
                             style: TextStyle(color: Colors.red, fontSize: 12),
                           ),
                         ],
-                        const SizedBox(height: 20),
+                        SizedBox(height: 20),
                         GridView.count(
                           crossAxisCount: 3,
                           shrinkWrap: true,
@@ -1708,19 +2314,19 @@ class _TopUpPageState extends State<TopUpPage> {
                           childAspectRatio: 1.8,
                           physics: const NeverScrollableScrollPhysics(),
                           children: keys.map((k) {
-                            if (k.isEmpty) return const SizedBox();
+                            if (k.isEmpty) return SizedBox();
                             return GestureDetector(
                               onTap: () => k == '⌫' ? onDelete() : onKey(k),
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: k == '⌫'
                                       ? Colors.red.withOpacity(0.1)
-                                      : Colors.white.withOpacity(0.06),
+                                      : (globalDarkMode.value ? kText : Colors.black).withOpacity(0.06),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     color: k == '⌫'
                                         ? Colors.red.withOpacity(0.3)
-                                        : Colors.white.withOpacity(0.1),
+                                        : (globalDarkMode.value ? kText : Colors.black).withOpacity(0.1),
                                   ),
                                 ),
                                 child: Center(
@@ -1729,7 +2335,7 @@ class _TopUpPageState extends State<TopUpPage> {
                                     style: TextStyle(
                                       color: k == '⌫'
                                           ? Colors.red[300]
-                                          : Colors.white,
+                                          : kText,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -1739,10 +2345,10 @@ class _TopUpPageState extends State<TopUpPage> {
                             );
                           }).toList(),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12),
                         TextButton(
                           onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text(
+                          child: Text(
                             'Cancel',
                             style: TextStyle(color: Colors.grey, fontSize: 13),
                           ),
@@ -1775,27 +2381,27 @@ class _TopUpPageState extends State<TopUpPage> {
                 color: kEcoGreen.withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: const CircularProgressIndicator(
+              child: CircularProgressIndicator(
                 color: kEcoGreen,
                 strokeWidth: 3,
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 16),
+            Text(
               'Processing Payment',
               style: TextStyle(
-                color: Colors.white,
+                color: kText,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               'Please wait while EcoCash processes your transaction...',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[400], fontSize: 13),
+              style: TextStyle(color: kSubText, fontSize: 13),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               'Do not close the app.',
               style: TextStyle(color: Colors.grey[600], fontSize: 11),
@@ -1844,24 +2450,24 @@ class _TopUpPageState extends State<TopUpPage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.signal_cellular_alt,
-                      color: Colors.white,
+                      color: kText,
                       size: 16,
                     ),
-                    const SizedBox(width: 6),
-                    const Text(
+                    SizedBox(width: 6),
+                    Text(
                       'Econet Zimbabwe',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: kText,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
                     ),
                     const Spacer(),
-                    const Text(
+                    Text(
                       'SMS',
-                      style: TextStyle(color: Colors.white70, fontSize: 11),
+                      style: TextStyle(color: (globalDarkMode.value ? Colors.white70 : Colors.black87), fontSize: 11),
                     ),
                   ],
                 ),
@@ -1885,18 +2491,18 @@ class _TopUpPageState extends State<TopUpPage> {
                             size: 20,
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        SizedBox(width: 10),
                         Text(
                           title,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: kText,
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -1905,14 +2511,14 @@ class _TopUpPageState extends State<TopUpPage> {
                       ),
                       child: Text(
                         message,
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color: (globalDarkMode.value ? Colors.white70 : Colors.black87),
                           fontSize: 13,
                           height: 1.5,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
@@ -1924,9 +2530,9 @@ class _TopUpPageState extends State<TopUpPage> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'OK',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: kText),
                             ),
                           ),
                         ),
@@ -1942,16 +2548,37 @@ class _TopUpPageState extends State<TopUpPage> {
     );
   }
 
+  Widget _paymentTab(String id, String label, Color color) {
+    bool isSelected = _paymentMethod == id;
+    return GestureDetector(
+      onTap: () => setState(() => _paymentMethod = id),
+      child: Container(
+        width: (MediaQuery.of(context).size.width - 40 - 16) / 3, // 3 columns
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? color : kCard,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(label, style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey,
+            fontWeight: FontWeight.bold, fontSize: 12,
+          )),
+        ),
+      ),
+    );
+  }
+
   Widget _confirmRow(String label, String value) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+        Text(label, style: TextStyle(color: kSubText, fontSize: 13)),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: kText,
             fontWeight: FontWeight.w600,
             fontSize: 13,
           ),
@@ -1968,7 +2595,7 @@ class _TopUpPageState extends State<TopUpPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Top Up',
               style: TextStyle(
                 color: kGreen,
@@ -1977,62 +2604,25 @@ class _TopUpPageState extends State<TopUpPage> {
               ),
             ),
             Text(
-              'Powered by EcoCash',
-              style: TextStyle(color: Colors.grey[400], fontSize: 13),
+              'Local Payments · ZESA Token',
+              style: TextStyle(color: kSubText, fontSize: 13),
             ),
-            const SizedBox(height: 24),
-            Row(
+            SizedBox(height: 24),
+            // ── Payment Method Tabs ──────────────────
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _useToken = false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: !_useToken ? kEcoGreen : kCard,
-                        borderRadius: const BorderRadius.horizontal(
-                          left: Radius.circular(10),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'EcoCash',
-                          style: TextStyle(
-                            color: !_useToken ? Colors.white : Colors.grey,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _useToken = true),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: _useToken ? kGreen : kCard,
-                        borderRadius: const BorderRadius.horizontal(
-                          right: Radius.circular(10),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'ZESA Token',
-                          style: TextStyle(
-                            color: _useToken ? Colors.white : Colors.grey,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                _paymentTab('ecocash', 'EcoCash', kEcoGreen),
+                _paymentTab('onemoney', 'OneMoney', Colors.orange),
+                _paymentTab('innbucks', 'InnBucks', Colors.blue),
+                _paymentTab('paynow', 'Paynow', Colors.purple),
+                _paymentTab('card', 'Card', Colors.indigo),
+                _paymentTab('token', 'ZESA Token', kGreen),
               ],
             ),
-            const SizedBox(height: 24),
-            if (!_useToken) ...[
+            SizedBox(height: 24),
+            if (['ecocash', 'onemoney', 'innbucks', 'paynow', 'card'].contains(_paymentMethod)) ...[
               // Currency Selector Tabs
               Container(
                 padding: const EdgeInsets.all(4),
@@ -2058,7 +2648,7 @@ class _TopUpPageState extends State<TopUpPage> {
                             child: Text(
                               'USD Wallet',
                               style: TextStyle(
-                                color: _selectedCurrency == 'USD' ? Colors.white : Colors.grey,
+                                color: _selectedCurrency == 'USD' ? kText : Colors.grey,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
                               ),
@@ -2083,7 +2673,7 @@ class _TopUpPageState extends State<TopUpPage> {
                             child: Text(
                               'ZiG Wallet (ZWG)',
                               style: TextStyle(
-                                color: _selectedCurrency == 'ZiG' ? Colors.white : Colors.grey,
+                                color: _selectedCurrency == 'ZiG' ? kText : Colors.grey,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
                               ),
@@ -2095,7 +2685,7 @@ class _TopUpPageState extends State<TopUpPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               Text(
                 'Select Amount ($_selectedCurrency)',
                 style: TextStyle(
@@ -2104,7 +2694,7 @@ class _TopUpPageState extends State<TopUpPage> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Wrap(
                 spacing: 12,
                 runSpacing: 12,
@@ -2130,16 +2720,16 @@ class _TopUpPageState extends State<TopUpPage> {
                           Text(
                             '$symbol$amt',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: kText,
                               fontSize: _selectedCurrency == 'USD' ? 18 : 14,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           Text(
                             '${(amt / rate).toStringAsFixed(0)} Units',
                             style: TextStyle(
-                              color: sel ? Colors.white70 : Colors.grey[600],
+                              color: sel ? (globalDarkMode.value ? Colors.white70 : Colors.black87) : Colors.grey[600],
                               fontSize: 10,
                             ),
                           ),
@@ -2149,20 +2739,20 @@ class _TopUpPageState extends State<TopUpPage> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               Text(
-                'EcoCash Number',
+                'Target Meter Number',
                 style: TextStyle(color: Colors.grey[300], fontSize: 13),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                style: const TextStyle(color: Colors.white),
+                controller: _meterController,
+                keyboardType: TextInputType.number,
+                style: TextStyle(color: kText),
                 decoration: InputDecoration(
-                  hintText: '077XXXXXXX',
+                  hintText: 'e.g. 1234567890',
                   hintStyle: TextStyle(color: Colors.grey[600]),
-                  prefixIcon: const Icon(Icons.phone, color: kGreen),
+                  prefixIcon: Icon(Icons.electric_meter, color: kGreen),
                   filled: true,
                   fillColor: kCard,
                   border: OutlineInputBorder(
@@ -2175,11 +2765,31 @@ class _TopUpPageState extends State<TopUpPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: kGreen),
+                    borderSide: BorderSide(color: kGreen),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
+              if (_paymentMethod == 'ecocash') ...[
+                Text('EcoCash Number', style: TextStyle(color: Colors.grey[300], fontSize: 13)),
+                SizedBox(height: 8),
+                TextField(controller: _phoneController, keyboardType: TextInputType.phone, style: TextStyle(color: kText), decoration: InputDecoration(hintText: '077XXXXXXX', hintStyle: TextStyle(color: Colors.grey[600]), prefixIcon: Icon(Icons.phone, color: kGreen), filled: true, fillColor: kCard, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))), focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: kGreen)))),
+              ] else if (_paymentMethod == 'onemoney') ...[
+                Text('OneMoney Number', style: TextStyle(color: Colors.grey[300], fontSize: 13)),
+                SizedBox(height: 8),
+                TextField(controller: _oneMoneyController, keyboardType: TextInputType.phone, style: TextStyle(color: kText), decoration: InputDecoration(hintText: '071XXXXXXX', hintStyle: TextStyle(color: Colors.grey[600]), prefixIcon: Icon(Icons.phone, color: Colors.orange), filled: true, fillColor: kCard, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))), focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.orange)))),
+              ] else if (_paymentMethod == 'innbucks') ...[
+                Text('InnBucks Registered Number', style: TextStyle(color: Colors.grey[300], fontSize: 13)),
+                SizedBox(height: 8),
+                TextField(controller: _innbucksController, keyboardType: TextInputType.phone, style: TextStyle(color: kText), decoration: InputDecoration(hintText: '07XXXXXXX', hintStyle: TextStyle(color: Colors.grey[600]), prefixIcon: Icon(Icons.phone, color: Colors.blue), filled: true, fillColor: kCard, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))), focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.blue)))),
+              ] else if (_paymentMethod == 'card') ...[
+                Text('Card Number', style: TextStyle(color: Colors.grey[300], fontSize: 13)),
+                SizedBox(height: 8),
+                TextField(controller: _cardNumberController, keyboardType: TextInputType.number, style: TextStyle(color: kText), decoration: InputDecoration(hintText: 'XXXX XXXX XXXX XXXX', hintStyle: TextStyle(color: Colors.grey[600]), prefixIcon: Icon(Icons.credit_card, color: Colors.indigo), filled: true, fillColor: kCard, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))), focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.indigo)))),
+              ] else if (_paymentMethod == 'paynow') ...[
+                Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.purple.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: Text('Paynow gateway will open in your browser to complete the transaction securely.', style: TextStyle(color: Colors.purple, fontSize: 13))),
+              ],
+              SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -2198,39 +2808,66 @@ class _TopUpPageState extends State<TopUpPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _loading ? null : _initiatePayment,
+                  onPressed: _loading ? null : () {
+                    if (_paymentMethod == 'ecocash') _initiatePayment();
+                    else if (_paymentMethod == 'onemoney') _initiateOneMoney();
+                    else if (_paymentMethod == 'innbucks') _initiateInnBucks();
+                    else if (_paymentMethod == 'paynow') _initiatePaynow();
+                    else if (_paymentMethod == 'card') _initiateCardPayment();
+                  },
                   icon: _loading
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.payment, color: Colors.white),
+                      ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: kText))
+                      : Icon(Icons.payment, color: kText),
                   label: Text(
-                    'Pay with EcoCash ($_selectedCurrency)',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    'Pay with ${_paymentMethod.toUpperCase()} ($_selectedCurrency)',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kText),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: kEcoGreen,
+                    backgroundColor: _paymentMethod == 'onemoney' ? Colors.orange : 
+                                     _paymentMethod == 'innbucks' ? Colors.blue : 
+                                     _paymentMethod == 'paynow' ? Colors.purple : 
+                                     _paymentMethod == 'card' ? Colors.indigo : kEcoGreen,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
             ] else ...[
+              SizedBox(height: 8),
+              Text(
+                'Target Meter Number',
+                style: TextStyle(color: Colors.grey[300], fontSize: 13),
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: _meterController,
+                keyboardType: TextInputType.number,
+                style: TextStyle(color: kText),
+                decoration: InputDecoration(
+                  hintText: 'e.g. 1234567890',
+                  hintStyle: TextStyle(color: Colors.grey[600]),
+                  prefixIcon: Icon(Icons.electric_meter, color: kGreen),
+                  filled: true,
+                  fillColor: kCard,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: kGreen),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
               Text(
                 'Enter ZESA Token',
                 style: TextStyle(
@@ -2239,20 +2876,20 @@ class _TopUpPageState extends State<TopUpPage> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 'Enter the 20-digit token from your ZESA receipt',
                 style: TextStyle(color: Colors.grey[500], fontSize: 12),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               TextField(
                 controller: _tokenController,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white, letterSpacing: 2),
+                style: TextStyle(color: kText, letterSpacing: 2),
                 decoration: InputDecoration(
                   hintText: '1234-5678-9012-3456-7890',
                   hintStyle: TextStyle(color: Colors.grey[600]),
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.confirmation_number,
                     color: kGreen,
                   ),
@@ -2268,28 +2905,28 @@ class _TopUpPageState extends State<TopUpPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: kGreen),
+                    borderSide: BorderSide(color: kGreen),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _loading ? null : _redeemToken,
                   icon: _loading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.check, color: Colors.white),
-                  label: const Text(
+                      : Icon(Icons.check, color: kText),
+                  label: Text(
                     'Redeem Token',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: kText,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
@@ -2339,7 +2976,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Notifications',
                   style: TextStyle(
                     color: kGreen,
@@ -2352,25 +2989,25 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     setState(() => globalNotifications.clear());
                     widget.onUpdate();
                   },
-                  child: const Text(
+                  child: Text(
                     'Clear all',
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             if (globalNotifications.isEmpty)
               Center(
                 child: Column(
                   children: [
-                    const SizedBox(height: 60),
+                    SizedBox(height: 60),
                     Icon(
                       Icons.notifications_none,
                       color: Colors.grey[600],
                       size: 60,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     Text(
                       'No notifications yet',
                       style: TextStyle(color: Colors.grey[500]),
@@ -2382,7 +3019,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               Expanded(
                 child: ListView.separated(
                   itemCount: globalNotifications.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, __) => SizedBox(height: 8),
                   itemBuilder: (_, i) {
                     final n = globalNotifications[i];
                     return Container(
@@ -2402,24 +3039,24 @@ class _NotificationsPageState extends State<NotificationsPage> {
                             ),
                             child: Icon(n.icon, color: n.color, size: 20),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   n.title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: kText,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
                                   ),
                                 ),
-                                const SizedBox(height: 3),
+                                SizedBox(height: 3),
                                 Text(
                                   n.body,
                                   style: TextStyle(
-                                    color: Colors.grey[400],
+                                    color: kSubText,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -2474,12 +3111,12 @@ class MeterDetailsPage extends StatelessWidget {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        title: const Text(
+        title: Text(
           'Meter Details',
           style: TextStyle(color: kGreen, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: kGreen),
+          icon: Icon(Icons.arrow_back, color: kGreen),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -2501,20 +3138,20 @@ class MeterDetailsPage extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.electric_meter, color: kGreen, size: 48),
-                  const SizedBox(width: 16),
+                  Icon(Icons.electric_meter, color: kGreen, size: 48),
+                  SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'SmartMeter ZW',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: kText,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'ZW-2024-00142',
                         style: TextStyle(color: kGreen, fontSize: 14),
                       ),
@@ -2523,16 +3160,16 @@ class MeterDetailsPage extends StatelessWidget {
                           Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: kGreen,
                               shape: BoxShape.circle,
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          SizedBox(width: 6),
                           Text(
                             'Active & Connected',
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: kSubText,
                               fontSize: 12,
                             ),
                           ),
@@ -2543,7 +3180,7 @@ class MeterDetailsPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             Container(
               decoration: BoxDecoration(
                 color: kCard,
@@ -2566,14 +3203,14 @@ class MeterDetailsPage extends StatelessWidget {
                             Text(
                               d[0],
                               style: TextStyle(
-                                color: Colors.grey[400],
+                                color: kSubText,
                                 fontSize: 13,
                               ),
                             ),
                             Text(
                               d[1],
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: kText,
                                 fontWeight: FontWeight.w500,
                                 fontSize: 13,
                               ),
@@ -2608,8 +3245,9 @@ class _ChatbotPageState extends State<ChatbotPage> {
   final List<Map<String, String>> _messages = [
     {
       'role': 'assistant',
-      'text':
-          'Hi! I\'m your SmartMeter AI assistant. Ask me about your electricity usage, tips to save power, or anything about your ZESA account! ⚡',
+      'text': currentMeterNumber.startsWith('GUEST')
+          ? 'Hi Guest! 👋 I\'m your SmartMeter payment assistant.\n\nI can help you:\n💳 Buy electricity for any meter\n📲 Understand EcoCash payment steps\n💰 Check rates (USD & ZiG)\n❓ Answer any ZESA questions\n\nWhat do you need help with? ⚡'
+          : 'Hi! I\'m your SmartMeter AI assistant. Ask me about your electricity usage, tips to save power, or anything about your ZESA account! ⚡',
     },
   ];
   final TextEditingController _ctrl = TextEditingController();
@@ -2975,16 +3613,16 @@ class _ChatbotPageState extends State<ChatbotPage> {
                 color: kGreen.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.smart_toy, color: kGreen, size: 20),
+              child: Icon(Icons.smart_toy, color: kGreen, size: 20),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'AI Assistant',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: kText,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
@@ -2994,13 +3632,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     Container(
                       width: 6,
                       height: 6,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: kGreen,
                         shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    const Text(
+                    SizedBox(width: 4),
+                    Text(
                       'Online',
                       style: TextStyle(color: kGreen, fontSize: 11),
                     ),
@@ -3011,7 +3649,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
           ],
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: kGreen),
+          icon: Icon(Icons.arrow_back, color: kGreen),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -3047,7 +3685,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                         ),
                         child: Text(
                           q,
-                          style: const TextStyle(color: kGreen, fontSize: 12),
+                          style: TextStyle(color: kGreen, fontSize: 12),
                         ),
                       ),
                     );
@@ -3086,7 +3724,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     child: Text(
                       m['text']!,
                       style: TextStyle(
-                        color: isUser ? Colors.black : Colors.white70,
+                        color: isUser ? Colors.black : (globalDarkMode.value ? Colors.white70 : Colors.black87),
                         fontSize: 13,
                         height: 1.4,
                       ),
@@ -3104,7 +3742,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                 Expanded(
                   child: TextField(
                     controller: _ctrl,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: kText),
                     onSubmitted: (_) => _send(),
                     decoration: InputDecoration(
                       hintText: 'Ask about your electricity...',
@@ -3122,17 +3760,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 GestureDetector(
                   onTap: _send,
                   child: Container(
                     width: 44,
                     height: 44,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: kGreen,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.send,
                       color: Colors.black,
                       size: 20,
@@ -3196,6 +3834,42 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _dailySummary = false;
   bool _darkMode = true;
 
+  Future<void> _consumeUnits(int amount) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$BASE_URL/api/consume/$amount'),
+        headers: {'X-Meter-Number': currentMeterNumber},
+      );
+      if (res.statusCode == 200) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Consumed $amount Units')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error consuming units: $e');
+    }
+  }
+
+  Future<void> _resetUnits() async {
+    try {
+      final res = await http.post(
+        Uri.parse('$BASE_URL/api/reset_units'),
+        headers: {'X-Meter-Number': currentMeterNumber},
+      );
+      if (res.statusCode == 200) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Units Reset to 50')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error resetting units: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -3204,7 +3878,7 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Settings',
               style: TextStyle(
                 color: kGreen,
@@ -3212,7 +3886,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -3224,23 +3898,23 @@ class _SettingsPageState extends State<SettingsPage> {
                   CircleAvatar(
                     radius: 28,
                     backgroundColor: kGreen.withOpacity(0.2),
-                    child: const Icon(Icons.person, color: kGreen, size: 28),
+                    child: Icon(Icons.person, color: kGreen, size: 28),
                   ),
-                  const SizedBox(width: 14),
+                  SizedBox(width: 14),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         currentUsername,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: kText,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         'Meter: $currentMeterNumber',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                        style: TextStyle(color: kSubText, fontSize: 12),
                       ),
                       Text(
                         'Harare, Zimbabwe',
@@ -3251,7 +3925,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             _sectionTitle('Notifications'),
             _switchTile(
               'Low Balance Alert',
@@ -3277,22 +3951,29 @@ class _SettingsPageState extends State<SettingsPage> {
               _dailySummary,
               (v) => setState(() => _dailySummary = v),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             _sectionTitle('Appearance'),
             _switchTile(
               'Dark Mode',
               'Use dark theme',
               Icons.dark_mode,
               kGreen,
-              _darkMode,
-              (v) => setState(() => _darkMode = v),
+              globalDarkMode.value,
+              (v) {
+                setState(() => _darkMode = v);
+                globalDarkMode.value = v;
+              },
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             _sectionTitle('About'),
             _infoTile('App Version', 'SmartMeter ZW v1.0.0'),
             _infoTile('Server', BASE_URL),
             _infoTile('Developer', 'UZ Research Innovation 2026'),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
+            _sectionTitle('Debug Actions'),
+            _debugActionTile('Consume 10 Units', Icons.battery_charging_full, Colors.orange, () => _consumeUnits(10)),
+            _debugActionTile('Reset Units', Icons.refresh, Colors.blue, _resetUnits),
+            SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -3301,14 +3982,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (_) => false,
                 ),
-                icon: const Icon(Icons.logout, color: Colors.red),
-                label: const Text(
+                icon: Icon(Icons.logout, color: Colors.red),
+                label: Text(
                   'Logout',
                   style: TextStyle(color: Colors.red, fontSize: 15),
                 ),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  side: const BorderSide(color: Colors.red),
+                  side: BorderSide(color: Colors.red),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -3326,7 +4007,7 @@ class _SettingsPageState extends State<SettingsPage> {
     child: Text(
       t,
       style: TextStyle(
-        color: Colors.grey[400],
+        color: kSubText,
         fontSize: 12,
         fontWeight: FontWeight.w600,
         letterSpacing: 1.2,
@@ -3354,7 +4035,7 @@ class _SettingsPageState extends State<SettingsPage> {
         activeColor: color,
         title: Text(
           title,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
+          style: TextStyle(color: kText, fontSize: 14),
         ),
         subtitle: Text(
           subtitle,
@@ -3376,12 +4057,28 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+          Text(label, style: TextStyle(color: kSubText, fontSize: 13)),
           Text(
             value,
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+            style: TextStyle(color: (globalDarkMode.value ? Colors.white70 : Colors.black87), fontSize: 13),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _debugActionTile(String title, IconData icon, Color color, VoidCallback onTap) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: kCard,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Icon(icon, color: color),
+        title: Text(title, style: TextStyle(color: kText, fontSize: 14)),
+        trailing: Icon(Icons.arrow_forward_ios, color: kSubText, size: 14),
       ),
     );
   }
