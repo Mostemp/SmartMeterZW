@@ -3,34 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartMeter ZW | Direct Electricity Purchase & Account Portal</title>
+  <title>ZETDC SmartPay | National Digital Electricity Vending Platform</title>
+  <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     :root {
-      --primary: #059669;
-      --primary-hover: #047857;
-      --primary-light: #ecfdf5;
-      --accent: #10b981;
-      --dark: #0f172a;
-      --gray-900: #0f172a;
-      --gray-800: #1e293b;
-      --gray-700: #334155;
-      --gray-600: #475569;
-      --gray-400: #94a3b8;
-      --gray-200: #e2e8f0;
-      --gray-100: #f1f5f9;
-      --gray-50: #f8fafc;
-      --white: #ffffff;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --radius: 16px;
-      --radius-sm: 10px;
-      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
-      --shadow-lg: 0 20px 30px -10px rgba(5, 150, 105, 0.15);
-      --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --primary: #00875A;
+      --primary-dark: #006644;
+      --primary-light: #E3FCEF;
+      --accent: #FFAB00;
+      --accent-light: #FFFAE6;
+      --sky: #0065FF;
+      --sky-light: #DEEBFF;
+      --dark: #091E42;
+      --surface: #FFFFFF;
+      --background: #F4F5F7;
+      --card-border: #DFE1E6;
+      --text-main: #172B4D;
+      --text-sub: #5E6C84;
+      --text-faint: #7A869A;
+      --radius-xl: 20px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+      --shadow-subtle: 0 1px 3px rgba(9, 30, 66, 0.08), 0 1px 2px rgba(9, 30, 66, 0.04);
+      --shadow-card: 0 4px 16px rgba(9, 30, 66, 0.06), 0 0 1px rgba(9, 30, 66, 0.12);
+      --shadow-hover: 0 12px 28px rgba(9, 30, 66, 0.12), 0 0 1px rgba(9, 30, 66, 0.2);
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
 
@@ -41,524 +48,724 @@
     }
 
     body {
-      font-family: var(--font);
-      background: #f8fafc;
-      color: var(--gray-800);
+      font-family: var(--font-body);
+      background-color: var(--background);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Top Navigation */
-    header {
-      background: var(--white);
-      border-bottom: 1px solid var(--gray-200);
-      position: sticky;
-      top: 0;
-      z-index: 40;
+    /* Top National Header */
+    .top-bar {
+      background: #091E42;
+      color: #97A0AF;
+      font-size: 0.75rem;
+      padding: 7px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .nav-container {
-      max-width: 1200px;
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .flag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #DEEBFF;
+      font-weight: 600;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .header-container {
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 16px 24px;
+      padding: 14px 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .brand {
+    .brand-section {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       text-decoration: none;
-      color: var(--dark);
     }
 
-    .brand-icon {
-      width: 42px;
-      height: 42px;
-      background: linear-gradient(135deg, #059669, #10b981);
+    .brand-logo-badge {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #00875A 0%, #00B8D9 100%);
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
-      font-size: 20px;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+      box-shadow: 0 4px 12px rgba(0, 135, 90, 0.3);
     }
 
-    .brand-text h1 {
-      font-size: 1.15rem;
+    .brand-titles h1 {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
       font-weight: 800;
+      color: var(--dark);
       letter-spacing: -0.02em;
+      line-height: 1.1;
     }
 
-    .brand-text span {
+    .brand-titles p {
       font-size: 0.75rem;
-      color: var(--primary);
       font-weight: 600;
+      color: var(--primary);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
     }
 
-    .nav-badge {
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .system-status-indicator {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: var(--primary-light);
-      color: var(--primary);
       padding: 6px 14px;
+      background: var(--primary-light);
+      border: 1px solid rgba(0, 135, 90, 0.2);
       border-radius: 9999px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 600;
+      color: var(--primary-dark);
     }
 
-    .nav-badge-dot {
+    .live-dot {
       width: 8px;
       height: 8px;
-      background: var(--accent);
+      background: #36B37E;
       border-radius: 50%;
-      animation: pulse 2s infinite;
+      box-shadow: 0 0 0 3px rgba(54, 179, 126, 0.3);
+      animation: pulse 2s infinite ease-in-out;
     }
 
     @keyframes pulse {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(0.95); opacity: 0.8; }
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.8; }
     }
 
-    /* Main Container */
-    main {
-      flex: 1;
-      max-width: 1200px;
+    /* Layout */
+    .app-wrapper {
+      max-width: 1400px;
       width: 100%;
       margin: 0 auto;
-      padding: 36px 24px 60px;
-      display: grid;
-      grid-template-columns: 1.25fr 1fr;
-      gap: 32px;
+      padding: 32px 32px 64px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
     }
 
-    @media (max-width: 900px) {
-      main {
+    /* Executive Hero / Stat Ribbon */
+    .metric-ribbon {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 1024px) {
+      .metric-ribbon {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .metric-ribbon {
         grid-template-columns: 1fr;
       }
     }
 
-    /* Cards */
-    .card {
-      background: var(--white);
-      border-radius: var(--radius);
-      border: 1px solid var(--gray-200);
-      padding: 28px;
-      box-shadow: var(--shadow);
+    .metric-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s ease;
     }
 
-    .card-title {
+    .metric-card:hover {
+      box-shadow: var(--shadow-card);
+      transform: translateY(-2px);
+    }
+
+    .metric-card-info span {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .metric-card-info h3 {
+      font-family: var(--font-heading);
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--dark);
+      letter-spacing: -0.02em;
+    }
+
+    .metric-card-info small {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #36B37E;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .metric-card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--background);
+      color: var(--text-main);
+    }
+
+    /* Main Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 28px;
+    }
+
+    @media (max-width: 1100px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Premium Vending Panel */
+    .glass-card {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-card);
+      padding: 32px;
+    }
+
+    .section-title-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
       font-size: 1.25rem;
       font-weight: 700;
       color: var(--dark);
-      margin-bottom: 6px;
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    .card-subtitle {
-      font-size: 0.875rem;
-      color: var(--gray-600);
-      margin-bottom: 24px;
+    .step-badge {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
     }
 
-    /* Form Styles */
-    .form-group {
-      margin-bottom: 20px;
+    /* Form Fields */
+    .field-group {
+      margin-bottom: 22px;
     }
 
-    label {
-      display: block;
-      font-size: 0.84rem;
+    .field-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
       font-weight: 600;
-      color: var(--gray-700);
+      color: var(--text-main);
       margin-bottom: 8px;
     }
 
-    .input-wrapper {
+    .field-hint {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-sub);
+    }
+
+    .input-box {
       position: relative;
       display: flex;
       align-items: center;
     }
 
-    .input-icon {
+    .input-box svg {
       position: absolute;
-      left: 14px;
-      color: var(--gray-400);
-      font-size: 1.1rem;
+      left: 16px;
+      color: var(--text-faint);
     }
 
-    input, select {
+    .custom-input {
       width: 100%;
-      padding: 13px 14px 13px 44px;
-      border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: 0.95rem;
+      height: 52px;
+      padding: 0 16px 0 48px;
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius-md);
+      background: #FAFBFC;
       color: var(--dark);
-      background: var(--gray-50);
-      transition: all 0.2s ease;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.2s;
     }
 
-    input:focus, select:focus {
+    .custom-input:focus {
       outline: none;
       border-color: var(--primary);
-      background: var(--white);
-      box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px rgba(0, 135, 90, 0.15);
     }
 
-    .meter-preview {
-      margin-top: 8px;
-      padding: 10px 14px;
-      background: var(--gray-50);
-      border-radius: var(--radius-sm);
-      font-size: 0.82rem;
-      color: var(--gray-600);
-      display: none;
+    .meter-verified-chip {
+      margin-top: 10px;
+      padding: 12px 16px;
+      background: #F4FBF7;
+      border: 1px solid rgba(0, 135, 90, 0.25);
+      border-radius: var(--radius-md);
+      display: flex;
       align-items: center;
       justify-content: space-between;
-      border: 1px solid var(--gray-200);
+      animation: fadeIn 0.3s ease;
     }
 
-    .meter-preview.active {
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chip-left {
       display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .meter-preview strong {
-      color: var(--primary);
+    .chip-meta h5 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--dark);
     }
 
-    /* Currency & Amount Pill Selector */
-    .currency-toggle {
+    .chip-meta p {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+    }
+
+    /* Currency Segmented Control */
+    .segmented-control {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      background: var(--gray-100);
+      gap: 6px;
+      background: #EBECF0;
       padding: 4px;
-      border-radius: var(--radius-sm);
-      margin-bottom: 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 14px;
     }
 
-    .currency-btn {
-      padding: 10px;
+    .seg-btn {
+      height: 42px;
       border: none;
       border-radius: 8px;
-      background: transparent;
-      color: var(--gray-600);
+      font-family: var(--font-heading);
+      font-size: 0.92rem;
       font-weight: 700;
-      font-size: 0.9rem;
+      color: var(--text-sub);
+      background: transparent;
       cursor: pointer;
-      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
     }
 
-    .currency-btn.active {
-      background: var(--white);
-      color: var(--primary);
-      box-shadow: var(--shadow-sm);
+    .seg-btn.active {
+      background: var(--surface);
+      color: var(--primary-dark);
+      box-shadow: var(--shadow-subtle);
     }
 
-    .amount-presets {
+    /* Amount Chips */
+    .preset-chips {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
 
-    .preset-btn {
-      padding: 12px 6px;
-      border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius-sm);
-      background: var(--white);
+    .chip-btn {
+      padding: 12px 8px;
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      font-family: var(--font-heading);
       font-weight: 700;
-      font-size: 0.95rem;
-      color: var(--gray-700);
+      font-size: 1rem;
+      color: var(--text-main);
       cursor: pointer;
-      transition: all 0.15s ease;
       text-align: center;
+      transition: all 0.15s ease;
     }
 
-    .preset-btn:hover {
+    .chip-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .chip-btn.active {
       border-color: var(--primary);
       background: var(--primary-light);
-      color: var(--primary);
+      color: var(--primary-dark);
     }
 
-    .preset-btn.active {
-      border-color: var(--primary);
-      background: var(--primary-light);
-      color: var(--primary);
-    }
-
-    /* Units Calculation Banner */
-    .estimate-banner {
-      background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
-      border: 1.5px dashed rgba(5, 150, 105, 0.4);
-      border-radius: var(--radius-sm);
-      padding: 14px 16px;
+    /* Calculation Callout */
+    .calc-box {
+      background: linear-gradient(135deg, #091E42 0%, #172B4D 100%);
+      color: white;
+      border-radius: var(--radius-lg);
+      padding: 18px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 24px;
     }
 
-    .estimate-label {
-      font-size: 0.84rem;
-      color: var(--gray-600);
-      font-weight: 500;
+    .calc-left h4 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #97A0AF;
+      margin-bottom: 2px;
     }
 
-    .estimate-value {
-      font-size: 1.3rem;
+    .calc-left p {
+      font-size: 0.85rem;
+      color: #DFE1E6;
+    }
+
+    .calc-right {
+      text-align: right;
+    }
+
+    .calc-units {
+      font-family: var(--font-heading);
+      font-size: 1.85rem;
       font-weight: 800;
-      color: var(--primary);
-      font-family: var(--font-mono);
+      color: #36B37E;
+      line-height: 1;
     }
 
-    /* Payment Methods */
-    .payment-methods {
+    /* Payment Channels Radio Grid */
+    .channel-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 12px;
       margin-bottom: 24px;
     }
 
-    .method-radio {
-      display: none;
+    .channel-option {
+      position: relative;
     }
 
-    .method-card {
-      border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius-sm);
-      padding: 14px 8px;
+    .channel-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .channel-card {
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 16px 12px;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s;
-      background: var(--white);
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
     }
 
-    .method-card:hover {
-      border-color: var(--gray-400);
+    .channel-card:hover {
+      border-color: #B3BAC5;
     }
 
-    .method-card .method-icon {
-      font-size: 1.4rem;
-      margin-bottom: 4px;
-      display: block;
+    .channel-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
     }
 
-    .method-card .method-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--gray-700);
-    }
-
-    .method-radio:checked + .method-card {
+    .channel-option input:checked + .channel-card {
       border-color: var(--primary);
       background: var(--primary-light);
     }
 
-    .method-radio:checked + .method-card .method-title {
-      color: var(--primary);
+    .channel-option input:checked + .channel-card .channel-name {
+      color: var(--primary-dark);
+      font-weight: 700;
     }
 
-    /* Submit Button */
-    .btn-submit {
+    .channel-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Primary Purchase Action */
+    .btn-purchase-direct {
       width: 100%;
-      padding: 16px;
-      background: var(--primary);
-      border: none;
-      border-radius: var(--radius-sm);
+      height: 56px;
+      background: linear-gradient(135deg, #00875A 0%, #006644 100%);
       color: white;
-      font-size: 1.05rem;
-      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      box-shadow: var(--shadow-lg);
-      transition: all 0.2s ease;
+      box-shadow: 0 8px 20px rgba(0, 135, 90, 0.3);
+      transition: all 0.2s;
     }
 
-    .btn-submit:hover {
-      background: var(--primary-hover);
-      transform: translateY(-1px);
+    .btn-purchase-direct:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0, 135, 90, 0.4);
     }
 
-    .btn-submit:active {
-      transform: translateY(0);
-    }
-
-    .btn-submit:disabled {
-      background: var(--gray-400);
+    .btn-purchase-direct:disabled {
+      background: #A5ADBA;
       cursor: not-allowed;
-      box-shadow: none;
       transform: none;
+      box-shadow: none;
     }
 
-    /* Account & Direct Balance Panel */
-    .balance-card {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      color: white;
-      border-radius: var(--radius);
+    /* Right Column: Account Card & Telemetry */
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .account-telemetry-card {
+      background: linear-gradient(135deg, #091E42 0%, #0052CC 100%);
+      border-radius: var(--radius-xl);
       padding: 28px;
-      margin-bottom: 24px;
-      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.15);
+      color: white;
+      box-shadow: var(--shadow-card);
       position: relative;
       overflow: hidden;
     }
 
-    .balance-card::after {
-      content: '⚡';
+    .account-telemetry-card::before {
+      content: '';
       position: absolute;
-      right: -10px;
-      bottom: -15px;
-      font-size: 8rem;
-      opacity: 0.05;
-      pointer-events: none;
+      top: -60px;
+      right: -60px;
+      width: 180px;
+      height: 180px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
     }
 
-    .balance-header {
+    .telemetry-top {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      margin-bottom: 20px;
+      align-items: flex-start;
+      margin-bottom: 24px;
     }
 
-    .meter-badge {
+    .meter-pill {
       font-family: var(--font-mono);
-      background: rgba(255, 255, 255, 0.1);
-      padding: 4px 10px;
-      border-radius: 6px;
       font-size: 0.85rem;
-      letter-spacing: 0.04em;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border-radius: 8px;
+      letter-spacing: 0.06em;
     }
 
-    .balance-units {
-      font-size: 2.8rem;
-      font-weight: 800;
-      font-family: var(--font-mono);
-      letter-spacing: -0.03em;
-      color: #34d399;
+    .telemetry-balance-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #DEEBFF;
+      margin-bottom: 4px;
+    }
+
+    .telemetry-balance-value {
+      font-family: var(--font-heading);
+      font-size: 3.2rem;
+      font-weight: 900;
+      color: #36B37E;
       line-height: 1;
-      margin-bottom: 6px;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
     }
 
-    .balance-subtitle {
-      font-size: 0.85rem;
-      color: var(--gray-400);
-      margin-bottom: 20px;
-    }
-
-    .meter-details-grid {
+    .telemetry-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding-top: 16px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-    .detail-item span {
+    .tele-item span {
       display: block;
-      font-size: 0.75rem;
-      color: var(--gray-400);
+      font-size: 0.72rem;
+      color: #B3D4FF;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
     }
 
-    .detail-item strong {
-      font-size: 0.9rem;
+    .tele-item strong {
+      font-size: 0.95rem;
       color: white;
     }
 
-    /* Transaction History Feed */
-    .history-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
+    /* History & Analytics Card */
+    .analytics-card {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--card-border);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
     }
 
-    .history-list {
+    .history-feed {
       display: flex;
       flex-direction: column;
       gap: 10px;
       max-height: 380px;
       overflow-y: auto;
+      margin-top: 14px;
     }
 
-    .history-item {
+    .history-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 12px 14px;
-      border-radius: var(--radius-sm);
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
+      background: #FAFBFC;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      transition: background 0.15s;
     }
 
-    .history-item-left {
+    .history-row:hover {
+      background: #F4F5F7;
+    }
+
+    .history-left {
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
-    .history-icon {
+    .history-icon-circle {
       width: 36px;
       height: 36px;
+      border-radius: 50%;
       background: var(--primary-light);
       color: var(--primary);
-      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1rem;
     }
 
-    .history-desc h4 {
-      font-size: 0.85rem;
+    .history-meta h4 {
+      font-size: 0.88rem;
       font-weight: 700;
       color: var(--dark);
     }
 
-    .history-desc span {
-      font-size: 0.75rem;
-      color: var(--gray-400);
+    .history-meta p {
+      font-size: 0.74rem;
+      color: var(--text-sub);
       font-family: var(--font-mono);
     }
 
-    .history-amount {
+    .history-right {
       text-align: right;
     }
 
-    .history-amount .units {
+    .history-credited-units {
+      font-family: var(--font-heading);
       font-size: 0.95rem;
       font-weight: 700;
       color: var(--primary);
-      font-family: var(--font-mono);
     }
 
-    .history-amount .cost {
-      font-size: 0.75rem;
-      color: var(--gray-600);
+    .history-cost {
+      font-size: 0.76rem;
+      color: var(--text-sub);
     }
 
-    /* Notification Modal / Toast */
-    .modal-overlay {
+    /* Success Receipt Modal */
+    .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(9, 30, 66, 0.7);
+      backdrop-filter: blur(6px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -566,341 +773,497 @@
       padding: 20px;
     }
 
-    .modal-overlay.active {
+    .modal-backdrop.open {
       display: flex;
     }
 
-    .receipt-modal {
-      background: white;
-      border-radius: var(--radius);
-      max-width: 440px;
+    .receipt-container {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      max-width: 460px;
       width: 100%;
-      padding: 28px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-      animation: slideUp 0.3s ease;
+      padding: 32px;
+      box-shadow: 0 20px 40px rgba(9, 30, 66, 0.3);
       text-align: center;
+      animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    @keyframes modalSlide {
+      from { transform: scale(0.94) translateY(12px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
     }
 
-    .receipt-icon {
-      width: 64px;
-      height: 64px;
+    .receipt-hero-badge {
+      width: 70px;
+      height: 70px;
       background: var(--primary-light);
       color: var(--primary);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
-      margin: 0 auto 16px;
+      margin: 0 auto 18px;
     }
 
     .receipt-title {
-      font-size: 1.25rem;
+      font-family: var(--font-heading);
+      font-size: 1.45rem;
       font-weight: 800;
       color: var(--dark);
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
-    .receipt-subtitle {
+    .receipt-sub {
       font-size: 0.85rem;
-      color: var(--gray-600);
-      margin-bottom: 20px;
+      color: var(--text-sub);
+      margin-bottom: 22px;
     }
 
-    .receipt-details {
-      background: var(--gray-50);
-      border-radius: var(--radius-sm);
-      padding: 16px;
+    .receipt-table {
+      background: #FAFBFC;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 18px;
       margin-bottom: 24px;
       text-align: left;
     }
 
-    .receipt-row {
+    .rcpt-line {
       display: flex;
       justify-content: space-between;
       font-size: 0.85rem;
       padding: 6px 0;
-      border-bottom: 1px dashed var(--gray-200);
+      border-bottom: 1px dashed #DFE1E6;
     }
 
-    .receipt-row:last-child {
+    .rcpt-line:last-child {
       border-bottom: none;
     }
 
-    .receipt-row span {
-      color: var(--gray-600);
+    .rcpt-line span {
+      color: var(--text-sub);
     }
 
-    .receipt-row strong {
-      color: var(--dark);
+    .rcpt-line strong {
       font-family: var(--font-mono);
+      color: var(--dark);
     }
 
-    .receipt-btn {
+    .btn-receipt-close {
       width: 100%;
-      padding: 14px;
-      background: var(--primary);
+      height: 48px;
+      background: var(--dark);
       color: white;
       border: none;
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-md);
+      font-family: var(--font-heading);
+      font-size: 1rem;
       font-weight: 700;
-      font-size: 0.95rem;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Header Navigation -->
+  <!-- Top Institutional Bar -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <span class="flag-pill">🇿🇼 ZETDC Official Digital Portal</span>
+      <span>•</span>
+      <span>National Electricity Vending Gateway</span>
+    </div>
+    <div>
+      <span>Tariff Schedule: Statutory Instrument (SI) Approved</span>
+    </div>
+  </div>
+
+  <!-- Primary Navigation -->
   <header>
-    <div class="nav-container">
-      <a href="#" class="brand">
-        <div class="brand-icon">⚡</div>
-        <div class="brand-text">
+    <div class="header-container">
+      <a href="#" class="brand-section">
+        <div class="brand-logo-badge">
+          <i data-lucide="zap" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div class="brand-titles">
           <h1>SmartMeter ZW</h1>
-          <span>Direct Electricity Vending Portal</span>
+          <p>Over-The-Air Digital Vending</p>
         </div>
       </a>
-      <div class="nav-badge">
-        <div class="nav-badge-dot"></div>
-        <span>Direct OTA Recharge Active</span>
+      <div class="header-actions">
+        <div class="system-status-indicator">
+          <div class="live-dot"></div>
+          <span>Instant OTA Crediting Active</span>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Content Layout -->
-  <main>
-    <!-- Left Column: Direct Top-Up Purchase Form -->
-    <section class="card">
-      <div class="card-title">
-        <span>⚡</span> Direct Electricity Purchase
-      </div>
-      <p class="card-subtitle">
-        Purchase prepaid units credited directly to your meter. No 20-digit token entry required.
-      </p>
-
-      <form id="purchaseForm" onsubmit="handleDirectPurchase(event)">
-        <!-- Meter Number Input -->
-        <div class="form-group">
-          <label for="meterNumber">Target Prepaid Meter Number</label>
-          <div class="input-wrapper">
-            <span class="input-icon">🔢</span>
-            <input 
-              type="text" 
-              id="meterNumber" 
-              placeholder="e.g. 1234567890" 
-              value="1234567890" 
-              required
-              oninput="lookupMeter(this.value)"
-            >
-          </div>
-          <div id="meterPreview" class="meter-preview active">
-            <span>Account: <strong id="previewName">admin</strong></span>
-            <span>Address: <strong id="previewAddress">25 Samora Machel Ave</strong></span>
-          </div>
+  <div class="app-wrapper">
+    <!-- Executive Metric Ribbon -->
+    <div class="metric-ribbon">
+      <div class="metric-card">
+        <div class="metric-card-info">
+          <span>Domestic Tariff</span>
+          <h3>$0.35</h3>
+          <small><i data-lucide="info" style="width:12px; height:12px;"></i> Official ZERA Rate / Unit</small>
         </div>
-
-        <!-- Currency Selector -->
-        <div class="form-group">
-          <label>Select Currency</label>
-          <div class="currency-toggle">
-            <button type="button" class="currency-btn active" id="btnUSD" onclick="setCurrency('USD')">USD ($)</button>
-            <button type="button" class="currency-btn" id="btnZIG" onclick="setCurrency('ZIG')">ZiG (Zimbabwe Gold)</button>
-          </div>
-        </div>
-
-        <!-- Amount Presets & Custom Input -->
-        <div class="form-group">
-          <label>Select or Enter Amount</label>
-          <div class="amount-presets" id="amountPresets">
-            <!-- Dynamic presets rendered via JS -->
-          </div>
-          <div class="input-wrapper">
-            <span class="input-icon" id="currencySymbol">$</span>
-            <input 
-              type="number" 
-              id="customAmount" 
-              placeholder="Enter custom amount" 
-              value="10" 
-              min="1" 
-              step="any"
-              required
-              oninput="recalcUnits()"
-            >
-          </div>
-        </div>
-
-        <!-- Real-Time Unit Estimate -->
-        <div class="estimate-banner">
-          <div>
-            <div class="estimate-label">Units to be credited directly:</div>
-            <div style="font-size:0.75rem; color:var(--gray-600); margin-top:2px;">Rate: <span id="rateLabel">$0.35 / Unit</span></div>
-          </div>
-          <div class="estimate-value" id="estimatedUnits">28.57 kWh</div>
-        </div>
-
-        <!-- Payment Method Selection -->
-        <div class="form-group">
-          <label>Payment Channel</label>
-          <div class="payment-methods">
-            <label>
-              <input type="radio" name="paymentMethod" value="EcoCash" class="method-radio" checked onchange="updatePaymentIcon()">
-              <div class="method-card">
-                <span class="method-icon">📱</span>
-                <span class="method-title">EcoCash</span>
-              </div>
-            </label>
-            <label>
-              <input type="radio" name="paymentMethod" value="OneMoney" class="method-radio" onchange="updatePaymentIcon()">
-              <div class="method-card">
-                <span class="method-icon">📶</span>
-                <span class="method-title">OneMoney</span>
-              </div>
-            </label>
-            <label>
-              <input type="radio" name="paymentMethod" value="InnBucks" class="method-radio" onchange="updatePaymentIcon()">
-              <div class="method-card">
-                <span class="method-icon">🏦</span>
-                <span class="method-title">InnBucks / Card</span>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <!-- Payer Mobile Number -->
-        <div class="form-group">
-          <label for="payerPhone">Subscriber Mobile Number (for USSD / Prompt)</label>
-          <div class="input-wrapper">
-            <span class="input-icon">📞</span>
-            <input type="tel" id="payerPhone" placeholder="0771234567" value="0771234567" required>
-          </div>
-        </div>
-
-        <!-- Purchase Button -->
-        <button type="submit" class="btn-submit" id="btnSubmit">
-          <span>⚡ Purchase Units Now</span>
-        </button>
-      </form>
-    </section>
-
-    <!-- Right Column: Live Meter Balance & Recent Top-Up Ledger -->
-    <section>
-      <!-- Live Meter Balance Card -->
-      <div class="balance-card">
-        <div class="balance-header">
-          <div>
-            <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-400);">Current Prepaid Balance</span>
-            <div class="balance-units" id="liveBalance">-- Units</div>
-          </div>
-          <div class="meter-badge" id="cardMeterNumber">#1234567890</div>
-        </div>
-        <p class="balance-subtitle" id="balanceStatus">Direct software connection to meter database</p>
-        
-        <div class="meter-details-grid">
-          <div class="detail-item">
-            <span>Account Holder</span>
-            <strong id="cardHolder">admin</strong>
-          </div>
-          <div class="detail-item">
-            <span>Tariff Category</span>
-            <strong id="cardTariff">Domestic Prepaid (R1)</strong>
-          </div>
+        <div class="metric-card-icon" style="background:#DEEBFF; color:#0052CC;">
+          <i data-lucide="tag"></i>
         </div>
       </div>
 
-      <!-- Transaction History Card -->
-      <div class="card">
-        <div class="history-header">
-          <h3 style="font-size:1.05rem; font-weight:700; color:var(--dark);">Recharge History</h3>
-          <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">Instant Digital Crediting</span>
+      <div class="metric-card">
+        <div class="metric-card-info">
+          <span>ZiG Equiv. Rate</span>
+          <h3>8.75 ZiG</h3>
+          <small><i data-lucide="trending-up" style="width:12px; height:12px;"></i> Official Currency Peg</small>
         </div>
-        <div class="history-list" id="transactionList">
-          <div style="text-align:center; padding: 20px; color: var(--gray-400); font-size: 0.85rem;">
-            Loading transactions...
+        <div class="metric-card-icon" style="background:#FFFAE6; color:#FF8B00;">
+          <i data-lucide="coins"></i>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-card-info">
+          <span>Tokenless System</span>
+          <h3>100% Direct</h3>
+          <small><i data-lucide="check-circle" style="width:12px; height:12px;"></i> No 20-digit STS entry</small>
+        </div>
+        <div class="metric-card-icon" style="background:#E3FCEF; color:#00875A;">
+          <i data-lucide="radio"></i>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-card-info">
+          <span>Gateway Latency</span>
+          <h3>&lt; 2.5s</h3>
+          <small><i data-lucide="activity" style="width:12px; height:12px;"></i> Instant Grid Credit</small>
+        </div>
+        <div class="metric-card-icon" style="background:#EAE6FF; color:#5243AA;">
+          <i data-lucide="gauge"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Body -->
+    <div class="dashboard-grid">
+      <!-- Left Column: Professional Direct Purchase Desk -->
+      <div class="glass-card">
+        <div class="section-title-wrap">
+          <div class="section-title">
+            <i data-lucide="shopping-cart" style="color:var(--primary); width:22px; height:22px;"></i>
+            <span>Instant Electricity Purchase</span>
+          </div>
+          <span class="step-badge">Direct OTA Crediting</span>
+        </div>
+
+        <form id="purchaseForm" onsubmit="handleDirectPurchase(event)">
+          <!-- Meter Number Entry with Auto-Verification -->
+          <div class="field-group">
+            <div class="field-label">
+              <span>Target Prepaid Meter Number</span>
+              <span class="field-hint">Auto-verifies account details</span>
+            </div>
+            <div class="input-box">
+              <i data-lucide="hash" style="width:20px; height:20px;"></i>
+              <input 
+                type="text" 
+                id="meterNumber" 
+                class="custom-input" 
+                placeholder="Enter 10-digit meter number" 
+                value="1234567890" 
+                required
+                oninput="lookupMeter(this.value)"
+              >
+            </div>
+            <div id="verifiedChip" class="meter-verified-chip">
+              <div class="chip-left">
+                <i data-lucide="check-circle-2" style="color:var(--primary); width:20px; height:20px;"></i>
+                <div class="chip-meta">
+                  <h5 id="verifiedHolder">Verified: admin</h5>
+                  <p id="verifiedAddress">25 Samora Machel Ave, Harare</p>
+                </div>
+              </div>
+              <span style="font-size:0.75rem; font-weight:700; color:var(--primary); font-family:var(--font-mono);">ZETDC ACTIVE</span>
+            </div>
+          </div>
+
+          <!-- Currency Selector -->
+          <div class="field-group">
+            <div class="field-label">
+              <span>Select Billing Currency</span>
+            </div>
+            <div class="segmented-control">
+              <button type="button" class="seg-btn active" id="btnUSD" onclick="setCurrency('USD')">
+                <span>🇺🇸 United States Dollar ($)</span>
+              </button>
+              <button type="button" class="seg-btn" id="btnZIG" onclick="setCurrency('ZIG')">
+                <span>🇿🇼 Zimbabwe Gold (ZiG)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Amount Presets & Custom Input -->
+          <div class="field-group">
+            <div class="field-label">
+              <span>Purchase Amount</span>
+              <span class="field-hint" id="currencySymbolHint">Enter custom or select preset</span>
+            </div>
+            <div class="preset-chips" id="presetContainer">
+              <!-- Dynamically populated via JS -->
+            </div>
+            <div class="input-box">
+              <i data-lucide="dollar-sign" id="amountIcon" style="width:20px; height:20px;"></i>
+              <input 
+                type="number" 
+                id="customAmount" 
+                class="custom-input" 
+                placeholder="Enter amount" 
+                value="10" 
+                min="1" 
+                step="any"
+                required
+                oninput="recalculateUnits()"
+              >
+            </div>
+          </div>
+
+          <!-- Dynamic Real-Time Calculations Box -->
+          <div class="calc-box">
+            <div class="calc-left">
+              <h4>Direct Recharge Yield</h4>
+              <p>Tariff: <span id="tariffRateText">$0.35 / kWh Unit</span></p>
+            </div>
+            <div class="calc-right">
+              <div class="calc-units" id="calculatedUnitsDisplay">28.57 Units</div>
+              <small style="color:#DEEBFF; font-size:0.72rem;">Credited directly to meter</small>
+            </div>
+          </div>
+
+          <!-- Payment Channels -->
+          <div class="field-group">
+            <div class="field-label">
+              <span>Select Instant Payment Channel</span>
+            </div>
+            <div class="channel-grid">
+              <label class="channel-option">
+                <input type="radio" name="paymentChannel" value="EcoCash" checked>
+                <div class="channel-card">
+                  <div class="channel-card-icon" style="background:#E3FCEF; color:#00875A;">
+                    <i data-lucide="smartphone"></i>
+                  </div>
+                  <span class="channel-name">EcoCash</span>
+                </div>
+              </label>
+
+              <label class="channel-option">
+                <input type="radio" name="paymentChannel" value="OneMoney">
+                <div class="channel-card">
+                  <div class="channel-card-icon" style="background:#FFFAE6; color:#FF8B00;">
+                    <i data-lucide="radio-tower"></i>
+                  </div>
+                  <span class="channel-name">OneMoney</span>
+                </div>
+              </label>
+
+              <label class="channel-option">
+                <input type="radio" name="paymentChannel" value="InnBucks">
+                <div class="channel-card">
+                  <div class="channel-card-icon" style="background:#DEEBFF; color:#0052CC;">
+                    <i data-lucide="credit-card"></i>
+                  </div>
+                  <span class="channel-name">InnBucks / Card</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Subscriber Phone for Prompt -->
+          <div class="field-group">
+            <div class="field-label">
+              <span>Mobile Number for Payment Authorization</span>
+            </div>
+            <div class="input-box">
+              <i data-lucide="phone" style="width:20px; height:20px;"></i>
+              <input type="tel" id="subscriberPhone" class="custom-input" placeholder="0771234567" value="0771234567" required>
+            </div>
+          </div>
+
+          <!-- Direct Purchase Action -->
+          <button type="submit" class="btn-purchase-direct" id="submitBtn">
+            <i data-lucide="zap" style="width:20px; height:20px;"></i>
+            <span>Confirm & Recharge Meter Now</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Right Column: Live Meter Telemetry & Transaction Feed -->
+      <div class="right-column">
+        <!-- Live Meter Account Telemetry Card -->
+        <div class="account-telemetry-card">
+          <div class="telemetry-top">
+            <div>
+              <div class="telemetry-balance-label">Current Meter Balance</div>
+              <div class="telemetry-balance-value" id="cardUnitsBalance">-- Units</div>
+            </div>
+            <div class="meter-pill" id="cardMeterBadge">#1234567890</div>
+          </div>
+
+          <div class="telemetry-grid">
+            <div class="tele-item">
+              <span>Account Holder</span>
+              <strong id="cardAccountName">admin</strong>
+            </div>
+            <div class="tele-item">
+              <span>Tariff Plan</span>
+              <strong id="cardTariffPlan">Domestic (R1)</strong>
+            </div>
+            <div class="tele-item">
+              <span>Grid Connection</span>
+              <strong style="color:#36B37E;">● ONLINE (DIRECT)</strong>
+            </div>
+            <div class="tele-item">
+              <span>Est. Autonomy</span>
+              <strong id="cardEstDays">~12 Days Left</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7-Day Consumption Trends Chart -->
+        <div class="analytics-card">
+          <div class="section-title-wrap" style="margin-bottom:14px; padding-bottom:10px;">
+            <div class="section-title" style="font-size:1.05rem;">
+              <i data-lucide="bar-chart-3" style="color:var(--sky); width:18px; height:18px;"></i>
+              <span>Weekly Consumption (kWh)</span>
+            </div>
+            <span style="font-size:0.75rem; color:var(--text-sub); font-weight:600;">Last 7 Days</span>
+          </div>
+          <div style="height: 140px; position: relative;">
+            <canvas id="consumptionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Recent Top-Up Audit Ledger -->
+        <div class="analytics-card">
+          <div class="section-title-wrap" style="margin-bottom:8px; padding-bottom:8px;">
+            <div class="section-title" style="font-size:1.05rem;">
+              <i data-lucide="clock" style="color:var(--primary); width:18px; height:18px;"></i>
+              <span>Recharge Audit Ledger</span>
+            </div>
+            <span style="font-size:0.75rem; color:var(--primary); font-weight:700;">Direct OTA</span>
+          </div>
+          <div class="history-feed" id="historyFeed">
+            <div style="text-align:center; padding: 20px; color: var(--text-faint); font-size: 0.85rem;">
+              Loading transactions...
+            </div>
           </div>
         </div>
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
 
-  <!-- Digital Receipt Modal -->
-  <div class="modal-overlay" id="receiptModal">
-    <div class="receipt-modal">
-      <div class="receipt-icon">✓</div>
-      <h3 class="receipt-title">Recharge Successful!</h3>
-      <p class="receipt-subtitle">Electricity units have been credited directly to your meter.</p>
-      
-      <div class="receipt-details">
-        <div class="receipt-row">
-          <span>Reference ID:</span>
-          <strong id="rcptRef">ZESA-123456</strong>
+  <!-- Digital Success Receipt Modal -->
+  <div class="modal-backdrop" id="receiptModal">
+    <div class="receipt-container">
+      <div class="receipt-hero-badge">
+        <i data-lucide="check" style="width:36px; height:36px;"></i>
+      </div>
+      <h3 class="receipt-title">Recharge Confirmed!</h3>
+      <p class="receipt-sub">Units have been directly credited to the meter account.</p>
+
+      <div class="receipt-table">
+        <div class="rcpt-line">
+          <span>Transaction Ref:</span>
+          <strong id="rcptRef">ZESA-948192</strong>
         </div>
-        <div class="receipt-row">
+        <div class="rcpt-line">
           <span>Meter Number:</span>
           <strong id="rcptMeter">1234567890</strong>
         </div>
-        <div class="receipt-row">
-          <span>Units Credited:</span>
+        <div class="rcpt-line">
+          <span>Units Added:</span>
           <strong id="rcptUnits" style="color:var(--primary);">+28.57 kWh</strong>
         </div>
-        <div class="receipt-row">
+        <div class="rcpt-line">
           <span>Amount Paid:</span>
           <strong id="rcptAmount">$10.00 USD</strong>
         </div>
-        <div class="receipt-row">
+        <div class="rcpt-line">
           <span>Payment Channel:</span>
           <strong id="rcptMethod">EcoCash</strong>
         </div>
-        <div class="receipt-row">
-          <span>New Meter Balance:</span>
+        <div class="rcpt-line">
+          <span>New Total Balance:</span>
           <strong id="rcptBalance" style="color:var(--primary);">74.29 Units</strong>
         </div>
       </div>
 
-      <button class="receipt-btn" onclick="closeReceipt()">Done & Close</button>
+      <button class="btn-receipt-close" onclick="closeReceiptModal()">Done & Dismiss</button>
     </div>
   </div>
 
   <script>
     const BASE_URL = window.location.origin;
-    let currentCurrency = 'USD';
+    let activeCurrency = 'USD';
     const USD_RATE = 0.35;
     const ZIG_RATE = 8.75;
 
-    const usdPresets = [5, 10, 20, 50];
-    const zigPresets = [50, 100, 200, 500];
+    const presetsUSD = [5, 10, 20, 50];
+    const presetsZIG = [50, 100, 200, 500];
+
+    let chartInstance = null;
+
+    function initChart() {
+      const ctx = document.getElementById('consumptionChart').getContext('2d');
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [{
+            label: 'kWh Used',
+            data: [9.4, 11.2, 8.7, 12.0, 10.5, 13.8, 11.0],
+            backgroundColor: '#00875A',
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#EBECF0' }, ticks: { font: { family: 'Inter', size: 10 } } },
+            x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 10 } } }
+          }
+        }
+      });
+    }
 
     function setCurrency(curr) {
-      currentCurrency = curr;
+      activeCurrency = curr;
       document.getElementById('btnUSD').classList.toggle('active', curr === 'USD');
       document.getElementById('btnZIG').classList.toggle('active', curr === 'ZIG');
-      document.getElementById('currencySymbol').textContent = curr === 'USD' ? '$' : 'ZiG ';
-      document.getElementById('rateLabel').textContent = curr === 'USD' ? '$0.35 / Unit' : '8.75 ZiG / Unit';
-
+      document.getElementById('tariffRateText').textContent = curr === 'USD' ? '$0.35 / kWh Unit' : '8.75 ZiG / kWh Unit';
+      
       renderPresets();
-      recalcUnits();
+      recalculateUnits();
     }
 
     function renderPresets() {
-      const container = document.getElementById('amountPresets');
-      const presets = currentCurrency === 'USD' ? usdPresets : zigPresets;
+      const container = document.getElementById('presetContainer');
+      const presets = activeCurrency === 'USD' ? presetsUSD : presetsZIG;
       container.innerHTML = '';
-      
+
       presets.forEach((val, idx) => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = `preset-btn ${idx === 1 ? 'active' : ''}`;
-        btn.textContent = currentCurrency === 'USD' ? `$${val}` : `${val} ZiG`;
+        btn.className = `chip-btn ${idx === 1 ? 'active' : ''}`;
+        btn.textContent = activeCurrency === 'USD' ? `$${val}` : `${val} ZiG`;
         btn.onclick = () => {
-          document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           document.getElementById('customAmount').value = val;
-          recalcUnits();
+          recalculateUnits();
         };
         container.appendChild(btn);
       });
@@ -908,97 +1271,80 @@
       document.getElementById('customAmount').value = presets[1];
     }
 
-    function recalcUnits() {
+    function recalculateUnits() {
       const amt = parseFloat(document.getElementById('customAmount').value) || 0;
-      const rate = currentCurrency === 'USD' ? USD_RATE : ZIG_RATE;
+      const rate = activeCurrency === 'USD' ? USD_RATE : ZIG_RATE;
       const units = (amt / rate).toFixed(2);
-      document.getElementById('estimatedUnits').textContent = `${units} Units`;
+      document.getElementById('calculatedUnitsDisplay').textContent = `${units} Units`;
     }
 
-    let lookupTimer = null;
-    function lookupMeter(meterNum) {
-      clearTimeout(lookupTimer);
-      lookupTimer = setTimeout(async () => {
-        if (!meterNum || meterNum.length < 5) return;
+    let lookupDebounce = null;
+    function lookupMeter(val) {
+      clearTimeout(lookupDebounce);
+      lookupDebounce = setTimeout(async () => {
+        if (!val || val.length < 5) return;
         try {
-          const res = await fetch(`${BASE_URL}/api/meter_info/${encodeURIComponent(meterNum)}`);
+          const res = await fetch(`${BASE_URL}/api/meter_info/${encodeURIComponent(val)}`);
           if (res.ok) {
             const data = await res.json();
-            document.getElementById('previewName').textContent = data.username;
-            document.getElementById('previewAddress').textContent = data.address || 'Harare';
-            document.getElementById('meterPreview').classList.add('active');
+            document.getElementById('verifiedHolder').textContent = `Verified: ${data.username}`;
+            document.getElementById('verifiedAddress').textContent = data.address || 'Harare';
+            document.getElementById('cardUnitsBalance').textContent = `${data.unit_balance} Units`;
+            document.getElementById('cardMeterBadge').textContent = `#${data.meter_number}`;
+            document.getElementById('cardAccountName').textContent = data.username;
+            document.getElementById('cardTariffPlan').textContent = data.tariff_plan || 'Domestic (R1)';
             
-            // Update balance card
-            document.getElementById('liveBalance').textContent = `${data.unit_balance} Units`;
-            document.getElementById('cardMeterNumber').textContent = `#${data.meter_number}`;
-            document.getElementById('cardHolder').textContent = data.username;
-            document.getElementById('cardTariff').textContent = data.tariff_plan || 'Domestic Prepaid';
+            const estDays = Math.max(1, Math.round(data.unit_balance / 3.5));
+            document.getElementById('cardEstDays').textContent = `~${estDays} Days Left`;
+
             loadTransactions(data.meter_number);
-          } else {
-            document.getElementById('previewName').textContent = 'Not Found';
-            document.getElementById('previewAddress').textContent = 'Unregistered';
           }
         } catch (e) {
           console.error(e);
         }
-      }, 400);
-    }
-
-    async function fetchAccountStatus() {
-      const meter = document.getElementById('meterNumber').value.trim();
-      try {
-        const res = await fetch(`${BASE_URL}/api/status`, {
-          headers: { 'X-Meter-Number': meter }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          document.getElementById('liveBalance').textContent = `${data.unit_balance} Units`;
-          document.getElementById('cardMeterNumber').textContent = `#${data.meter_number}`;
-          document.getElementById('cardHolder').textContent = data.username;
-          document.getElementById('cardTariff').textContent = data.tariff_plan;
-        }
-      } catch (e) {
-        console.error(e);
-      }
+      }, 350);
     }
 
     async function loadTransactions(meterNum) {
-      const list = document.getElementById('transactionList');
+      const feed = document.getElementById('historyFeed');
       try {
         const res = await fetch(`${BASE_URL}/api/transactions/${encodeURIComponent(meterNum)}`);
         if (res.ok) {
           const data = await res.json();
           if (data.transactions && data.transactions.length > 0) {
-            list.innerHTML = data.transactions.map(t => {
+            feed.innerHTML = data.transactions.map(t => {
               const dt = new Date(t.timestamp * 1000).toLocaleDateString('en-GB', {
                 month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
               });
               return `
-                <div class="history-item">
-                  <div class="history-item-left">
-                    <div class="history-icon">⚡</div>
-                    <div class="history-desc">
-                      <h4>${t.payment_method}</h4>
-                      <span>${t.reference_id} • ${dt}</span>
+                <div class="history-row">
+                  <div class="history-left">
+                    <div class="history-icon-circle">
+                      <i data-lucide="zap" style="width:16px; height:16px;"></i>
+                    </div>
+                    <div class="history-meta">
+                      <h4>${t.payment_method} Recharge</h4>
+                      <p>${t.reference_id} • ${dt}</p>
                     </div>
                   </div>
-                  <div class="history-amount">
-                    <div class="units">+${t.units_credited} Units</div>
-                    <div class="cost">${t.currency === 'USD' ? '$' : 'ZiG '}${t.amount}</div>
+                  <div class="history-right">
+                    <div class="history-credited-units">+${t.units_credited} Units</div>
+                    <div class="history-cost">${t.currency === 'USD' ? '$' : 'ZiG '}${t.amount}</div>
                   </div>
                 </div>
               `;
             }).join('');
+            lucide.createIcons();
           } else {
-            list.innerHTML = `
-              <div style="text-align:center; padding: 24px; color: var(--gray-400); font-size: 0.85rem;">
-                No prior transactions found for meter #${meterNum}
+            feed.innerHTML = `
+              <div style="text-align:center; padding: 24px; color: var(--text-faint); font-size: 0.85rem;">
+                No prior transactions found for #${meterNum}
               </div>
             `;
           }
         }
-      } catch (e) {
-        list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--danger); font-size:0.85rem;">Failed to load transactions</div>`;
+      } catch (err) {
+        feed.innerHTML = `<div style="text-align:center; padding:16px; color:#DE350B; font-size:0.85rem;">Unable to load transaction feed</div>`;
       }
     }
 
@@ -1006,9 +1352,9 @@
       e.preventDefault();
       const meterNum = document.getElementById('meterNumber').value.trim();
       const amount = parseFloat(document.getElementById('customAmount').value);
-      const phone = document.getElementById('payerPhone').value.trim();
-      const method = document.querySelector('input[name="paymentMethod"]:checked').value;
-      const btn = document.getElementById('btnSubmit');
+      const phone = document.getElementById('subscriberPhone').value.trim();
+      const channel = document.querySelector('input[name="paymentChannel"]:checked').value;
+      const btn = document.getElementById('submitBtn');
 
       if (!meterNum || amount <= 0) {
         alert('Please specify a valid meter number and recharge amount.');
@@ -1016,7 +1362,7 @@
       }
 
       btn.disabled = true;
-      btn.innerHTML = '<span>⏳ Processing Direct OTA Top-Up...</span>';
+      btn.innerHTML = `<span>Processing Direct OTA Recharge...</span>`;
 
       try {
         const res = await fetch(`${BASE_URL}/api/purchase`, {
@@ -1025,51 +1371,53 @@
           body: JSON.stringify({
             meter_number: meterNum,
             amount: amount,
-            currency: currentCurrency,
-            payment_method: method,
+            currency: activeCurrency,
+            payment_method: channel,
             phone: phone
           })
         });
 
         const data = await res.json();
         if (data.success) {
-          // Update receipt modal
+          // Fill Receipt
           document.getElementById('rcptRef').textContent = data.reference_id;
           document.getElementById('rcptMeter').textContent = data.meter_number;
-          document.getElementById('rcptUnits').textContent = `+${data.units_credited} Units`;
+          document.getElementById('rcptUnits').textContent = `+${data.units_credited} kWh`;
           document.getElementById('rcptAmount').textContent = `${data.currency === 'USD' ? '$' : 'ZiG '}${data.amount.toFixed(2)}`;
-          document.getElementById('rcptMethod').textContent = method;
+          document.getElementById('rcptMethod').textContent = channel;
           document.getElementById('rcptBalance').textContent = `${data.new_balance} Units`;
-          
-          // Open Modal
-          document.getElementById('receiptModal').classList.add('active');
 
-          // Update live balance card & refresh history
-          document.getElementById('liveBalance').textContent = `${data.new_balance} Units`;
+          // Show Receipt Modal
+          document.getElementById('receiptModal').classList.add('open');
+
+          // Update Balance
+          document.getElementById('cardUnitsBalance').textContent = `${data.new_balance} Units`;
+          const estDays = Math.max(1, Math.round(data.new_balance / 3.5));
+          document.getElementById('cardEstDays').textContent = `~${estDays} Days Left`;
+          
           loadTransactions(meterNum);
         } else {
-          alert(data.message || 'Payment failed. Please verify details.');
+          alert(data.message || 'Purchase failed.');
         }
       } catch (err) {
-        alert('Error communicating with electricity vending server.');
+        alert('Server connection error. Please try again.');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<span>⚡ Purchase Units Now</span>';
+        btn.innerHTML = `<i data-lucide="zap" style="width:20px; height:20px;"></i><span>Confirm & Recharge Meter Now</span>`;
+        lucide.createIcons();
       }
     }
 
-    function closeReceipt() {
-      document.getElementById('receiptModal').classList.remove('active');
+    function closeReceiptModal() {
+      document.getElementById('receiptModal').classList.remove('open');
     }
 
-    function updatePaymentIcon() {}
-
-    // Initial setup on page load
     window.onload = () => {
+      lucide.createIcons();
+      initChart();
       renderPresets();
-      recalcUnits();
+      recalculateUnits();
       lookupMeter('1234567890');
-      setInterval(fetchAccountStatus, 8000);
     };
   </script>
 </body>
