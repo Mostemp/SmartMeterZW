@@ -26,7 +26,7 @@ const Color kEcoGreen = Color(0xFF4CAF50);
 String currentMeterNumber = '1234567890';
 String currentUsername = 'admin';
 
-void main() => runApp(const SmartMeterApp());
+void main() => runApp(const ZesaInstantApp());
 
 // ─── Models ───────────────────────────────────────────────
 class MeterStatus {
@@ -72,7 +72,7 @@ class AppNotification {
 // ─── Global Notification Store ────────────────────────────
 final List<AppNotification> globalNotifications = [
   AppNotification(
-    title: 'Welcome to SmartMeter ZW',
+    title: 'Welcome to ZESA Instant',
     body: 'Your meter is connected and monitoring has started.',
     time: DateTime.now().subtract(const Duration(hours: 2)),
     icon: Icons.check_circle,
@@ -81,14 +81,14 @@ final List<AppNotification> globalNotifications = [
 ];
 
 // ─── App Root ─────────────────────────────────────────────
-class SmartMeterApp extends StatelessWidget {
-  const SmartMeterApp({super.key});
+class ZesaInstantApp extends StatelessWidget {
+  const ZesaInstantApp({super.key});
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<bool>(
         valueListenable: globalDarkMode,
         builder: (context, isDark, child) {
           return MaterialApp(
-            title: 'SmartMeter ZW',
+            title: 'ZESA Instant',
             debugShowCheckedModeBanner: false,
             theme: isDark
                 ? ThemeData.dark().copyWith(
@@ -497,7 +497,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ),
                       SizedBox(height: 6),
                       Text(
-                        'SmartMeter ZW',
+                        'ZESA Instant',
                         style: TextStyle(
                           color: kText,
                           fontSize: 26,
@@ -1006,7 +1006,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'SmartMeter ZW',
+                      'ZESA Instant',
                       style: TextStyle(
                         color: kGreen,
                         fontSize: 22,
@@ -3094,7 +3094,7 @@ class MeterDetailsPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'SmartMeter ZW',
+                        'ZESA Instant',
                         style: TextStyle(
                           color: kText,
                           fontSize: 18,
@@ -3239,7 +3239,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
     'why is':
         'If your power went off, check: 1) Balance on Dashboard (top up if 0), 2) Load shedding schedule for your area, 3) Your main breaker. Call ZESA on 08677 if all OK.',
     'what is':
-        'SmartMeter ZW is a smart prepaid electricity meter for Zimbabwe\'s ZESA grid. It monitors your balance, consumption, and voltage in real time via a mobile app.',
+        'ZESA Instant is a smart prepaid electricity meter for Zimbabwe\'s ZESA grid. It monitors your balance, consumption, and voltage in real time via a mobile app.',
     'can i':
         'Yes! You can top up, monitor usage, view history, check voltage, and get alerts all from this app. What specifically would you like to do?',
     'how can':
@@ -3250,7 +3250,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         'I can help with:\n⚡ Balance & top-up\n📊 Usage history\n💡 Saving tips\n💰 Tariffs & costs\n🔒 Tamper alerts\n📞 ZESA contacts\n⚡ Load shedding\nWhat do you need?',
     'what can':
         'I can answer questions about your electricity balance, how to top up, usage history, tariffs, power saving tips, tamper alerts, voltage, load shedding, and ZESA contacts.',
-    'hello': 'Hello! Welcome to SmartMeter ZW. How can I help you today? ⚡',
+    'hello': 'Hello! Welcome to ZESA Instant. How can I help you today? ⚡',
     'hi':
         'Hi there! I\'m your SmartMeter assistant. Ask me anything about your electricity.',
     'hey': 'Hey! What would you like to know about your meter or electricity?',
@@ -3397,17 +3397,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
     // ── Meter & Hardware ───────────────────────────────────
     'meter':
-        'Your SmartMeter ZW (Serial: ZW-2024-00142) is an IoT-connected prepaid meter. It monitors balance, consumption, voltage, and tamper status in real time.',
+        'Your ZESA Instant (Serial: ZW-2024-00142) is an IoT-connected prepaid meter. It monitors balance, consumption, voltage, and tamper status in real time.',
     'serial':
         'Your meter serial number is ZW-2024-00142. You can find full meter details in the Meter Details screen — tap the ONLINE badge on the Dashboard.',
     'model':
-        'Your meter is a SmartMeter ZW IoT Prepaid Meter, connected via 4G LTE to the cloud. It replaces the traditional ZESA keypad meter.',
+        'Your meter is a ZESA Instant IoT Prepaid Meter, connected via 4G LTE to the cloud. It replaces the traditional ZESA keypad meter.',
     'firmware':
         'Your meter firmware is v2.1.4. Firmware updates are applied automatically over the air when connected. Check Meter Details for the latest version.',
     'signal':
         'Your meter is connected via 4G LTE with Excellent signal strength. This ensures real-time data updates every 5 seconds.',
     'connection':
-        'Your meter connects to the SmartMeter ZW server via 4G LTE mobile data. This is separate from your home WiFi — no router needed.',
+        'Your meter connects to the ZESA Instant server via 4G LTE mobile data. This is separate from your home WiFi — no router needed.',
     'offline':
         'If the app shows OFFLINE, check:\n1. Is the Flask server running on the laptop?\n2. Is your phone on the PC hotspot?\n3. Is the hotspot firewall disabled?\nRestart the server if needed.',
     'online':
@@ -3427,9 +3427,9 @@ class _ChatbotPageState extends State<ChatbotPage> {
     'theft':
         'Electricity theft is a criminal offence. If you suspect someone is stealing electricity from your meter, contact ZESA on 08677 or the police.',
     'bypass':
-        'Bypassing a prepaid meter is illegal and dangerous. It can cause fires and electrocution. SmartMeter ZW detects bypasses and alerts ZESA automatically.',
+        'Bypassing a prepaid meter is illegal and dangerous. It can cause fires and electrocution. ZESA Instant detects bypasses and alerts ZESA automatically.',
     'hack':
-        'SmartMeter ZW has built-in tamper detection and sends alerts to both the app and ZESA in real time. The meter is sealed and any tampering is logged.',
+        'ZESA Instant has built-in tamper detection and sends alerts to both the app and ZESA in real time. The meter is sealed and any tampering is logged.',
     'security':
         'Your meter is protected by tamper sensors, encrypted communication, and real-time monitoring. Any unauthorized access triggers an immediate alert to both you and ZESA.',
     'alert':
@@ -3439,7 +3439,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
     // ── App & Settings ─────────────────────────────────────
     'app':
-        'SmartMeter ZW app lets you monitor your electricity balance, consumption, voltage, usage history, and top up — all from your phone.',
+        'ZESA Instant app lets you monitor your electricity balance, consumption, voltage, usage history, and top up — all from your phone.',
     'dashboard':
         'The Dashboard shows your live unit balance, consumption in kW, voltage, meter status, and quick access to AI Assistant and Meter Details.',
     'settings':
@@ -3453,7 +3453,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
     'dark mode':
         'Dark mode is enabled by default and can be toggled in Settings → Appearance.',
     'version':
-        'SmartMeter ZW app version 1.0.0. This is the first release developed for the UZ Research Innovation Week 2026.',
+        'ZESA Instant app version 1.0.0. This is the first release developed for the UZ Research Innovation Week 2026.',
 
     // ── ZESA Contact & Support ─────────────────────────────
     'contact':
@@ -3465,19 +3465,19 @@ class _ChatbotPageState extends State<ChatbotPage> {
     'report':
         'To report a fault, contact ZESA on 08677 or visit your nearest ZESA office. For tamper alerts, the app notifies ZESA automatically.',
     'fault':
-        'For meter faults, call ZESA on 08677. The SmartMeter ZW system logs all events which can help ZESA diagnose issues faster.',
+        'For meter faults, call ZESA on 08677. The ZESA Instant system logs all events which can help ZESA diagnose issues faster.',
     'support':
-        'For app support, contact the SmartMeter ZW team at UZ. For ZESA billing or meter issues, call 08677 or visit zesa.co.zw.',
+        'For app support, contact the ZESA Instant team at UZ. For ZESA billing or meter issues, call 08677 or visit zesa.co.zw.',
     'complain':
-        'For ZESA complaints, contact them on 08677 or email info@zesa.co.zw. For SmartMeter ZW app issues, contact the UZ development team.',
+        'For ZESA complaints, contact them on 08677 or email info@zesa.co.zw. For ZESA Instant app issues, contact the UZ development team.',
 
     // ── Billing & Payments ─────────────────────────────────
     'bill':
-        'SmartMeter ZW is a prepaid system — you pay before you use. There are no monthly bills. Top up when needed and track spending via the History tab.',
+        'ZESA Instant is a prepaid system — you pay before you use. There are no monthly bills. Top up when needed and track spending via the History tab.',
     'prepaid':
-        'Your SmartMeter ZW is a prepaid meter. You buy units in advance via EcoCash or ZESA token. When units run out, supply disconnects automatically.',
+        'Your ZESA Instant is a prepaid meter. You buy units in advance via EcoCash or ZESA token. When units run out, supply disconnects automatically.',
     'postpaid':
-        'SmartMeter ZW is prepaid only. There is no postpaid (monthly bill) option on this meter. You must top up before your balance reaches 0.',
+        'ZESA Instant is prepaid only. There is no postpaid (monthly bill) option on this meter. You must top up before your balance reaches 0.',
     'debt':
         'With a prepaid meter, there\'s no debt — you only use what you\'ve paid for. When balance hits 0, power disconnects until you top up.',
     'change':
@@ -3485,9 +3485,9 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
     // ── Environment & Solar ────────────────────────────────
     'solar':
-        'SmartMeter ZW can monitor solar hybrid systems. If you have solar panels, the meter can track export and import. Contact ZESA to configure net metering.',
+        'ZESA Instant can monitor solar hybrid systems. If you have solar panels, the meter can track export and import. Contact ZESA to configure net metering.',
     'renewable':
-        'Zimbabwe has strong solar potential. A 5kW solar system can offset most household consumption. SmartMeter ZW supports hybrid grid/solar monitoring.',
+        'Zimbabwe has strong solar potential. A 5kW solar system can offset most household consumption. ZESA Instant supports hybrid grid/solar monitoring.',
     'environment':
         'Using less electricity reduces Zimbabwe\'s reliance on coal and hydro imports. Every Units saved helps the national grid and reduces your bill.',
     'carbon':
@@ -3495,17 +3495,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
     // ── Project Info ───────────────────────────────────────
     'who made':
-        'SmartMeter ZW was developed by a team at the University of Zimbabwe for the 2026 Research Innovation & Industrialisation Week.',
+        'ZESA Instant was developed by a team at the University of Zimbabwe for the 2026 Research Innovation & Industrialisation Week.',
     'developer':
-        'SmartMeter ZW was developed at the University of Zimbabwe. The system includes IoT hardware, a mobile app, and a cloud backend.',
+        'ZESA Instant was developed at the University of Zimbabwe. The system includes IoT hardware, a mobile app, and a cloud backend.',
     'university':
-        'SmartMeter ZW is a University of Zimbabwe research project presented at the 2026 UZ Research Innovation & Industrialisation Week.',
+        'ZESA Instant is a University of Zimbabwe research project presented at the 2026 UZ Research Innovation & Industrialisation Week.',
     'research':
-        'SmartMeter ZW is a research project exploring next-generation prepaid metering for Zimbabwe\'s ZESA grid using IoT, AI, and mobile technology.',
+        'ZESA Instant is a research project exploring next-generation prepaid metering for Zimbabwe\'s ZESA grid using IoT, AI, and mobile technology.',
     'project':
-        'SmartMeter ZW is an IoT smart electricity metering system designed for Zimbabwe. It features real-time monitoring, mobile control, AI assistance, and EcoCash payments.',
+        'ZESA Instant is an IoT smart electricity metering system designed for Zimbabwe. It features real-time monitoring, mobile control, AI assistance, and EcoCash payments.',
     'innovation':
-        'SmartMeter ZW innovates on traditional ZESA keypad meters by adding WiFi/4G connectivity, a mobile app, AI assistant, tamper detection, and EcoCash integration.',
+        'ZESA Instant innovates on traditional ZESA keypad meters by adding WiFi/4G connectivity, a mobile app, AI assistant, tamper detection, and EcoCash integration.',
   };
 
   String _getResponse(String input) {
@@ -3916,7 +3916,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             SizedBox(height: 8),
             _sectionTitle('About'),
-            _infoTile('App Version', 'SmartMeter ZW v1.0.0'),
+            _infoTile('App Version', 'ZESA Instant v1.0.0'),
             _infoTile('Server', BASE_URL),
             _infoTile('Developer', 'UZ Research Innovation 2026'),
             SizedBox(height: 20),

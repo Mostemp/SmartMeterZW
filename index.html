@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZETDC SmartPay | National Digital Electricity Vending Gateway</title>
+  <title>ZESA Instant | Direct Meter Top-Up • No Tokens</title>
+  <link rel="icon" type="image/png" href="logo.png">
   <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -383,22 +384,18 @@
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .brand-logo-badge {
-      width: 44px;
-      height: 44px;
-      background: linear-gradient(135deg, #00875A 0%, #00B8D9 100%);
+    .brand-logo-img {
+      width: 48px;
+      height: 48px;
       border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      box-shadow: 0 4px 12px rgba(0, 135, 90, 0.3);
-      transition: all 0.3s ease;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .brand-section:hover .brand-logo-badge {
-      transform: rotate(12deg) scale(1.08);
-      box-shadow: 0 6px 18px rgba(0, 184, 217, 0.4);
+    .brand-section:hover .brand-logo-img {
+      transform: scale(1.08) rotate(3deg);
+      box-shadow: 0 8px 20px rgba(0, 135, 90, 0.35);
     }
 
     .metric-card:hover .metric-card-icon svg {
@@ -1029,12 +1026,10 @@
   <header>
     <div class="header-container">
       <a href="#" class="brand-section">
-        <div class="brand-logo-badge">
-          <i data-lucide="zap" style="width: 24px; height: 24px;"></i>
-        </div>
+        <img src="logo.png" alt="ZESA Instant Logo" class="brand-logo-img">
         <div class="brand-titles">
-          <h1>SmartMeter ZW</h1>
-          <p>National Prepaid Electricity Gateway</p>
+          <h1>ZESA Instant</h1>
+          <p>Direct Meter Top-Up • No Tokens</p>
         </div>
       </a>
       <div class="header-actions">
