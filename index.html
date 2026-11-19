@@ -377,36 +377,91 @@
       gap: 6px;
     }
 
-    .demo-chips {
+    /* Professional Animated SVG Icons & Interactive Micro-Animations */
+    svg.lucide {
+      stroke-width: 2.2px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .brand-logo-badge {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #00875A 0%, #00B8D9 100%);
+      border-radius: 12px;
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 135, 90, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .brand-section:hover .brand-logo-badge {
+      transform: rotate(12deg) scale(1.08);
+      box-shadow: 0 6px 18px rgba(0, 184, 217, 0.4);
+    }
+
+    .metric-card:hover .metric-card-icon svg {
+      transform: scale(1.15) rotate(6deg);
+    }
+
+    .channel-card:hover .channel-card-icon svg {
+      transform: translateY(-2px) scale(1.12);
+    }
+
+    .btn-purchase-direct:hover svg {
+      transform: scale(1.2) rotate(-8deg);
+    }
+
+    .demo-chip:hover .chip-icon-box svg {
+      transform: scale(1.2);
+    }
+
+    /* Clean Icon Box for Demo Profile Chips (No messy emojis) */
+    .chip-icon-box {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.05);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      transition: all 0.2s;
+    }
+
+    .demo-chip.active .chip-icon-box {
+      background: rgba(255, 255, 255, 0.2);
+      color: #36B37E;
     }
 
     .demo-chip {
-      padding: 6px 12px;
+      padding: 7px 14px;
       background: var(--surface);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      font-size: 0.78rem;
+      border: 1.5px solid var(--card-border);
+      border-radius: 999px;
+      font-size: 0.82rem;
       font-weight: 600;
       color: var(--text-main);
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
-      transition: all 0.15s;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .demo-chip:hover {
       border-color: var(--primary);
       color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-subtle);
     }
 
     .demo-chip.active {
       background: var(--dark);
       color: white;
       border-color: var(--dark);
+      box-shadow: 0 4px 12px rgba(9, 30, 66, 0.25);
     }
 
     .meter-verified-chip {
@@ -1000,16 +1055,20 @@
       </div>
       <div class="demo-chips">
         <div class="demo-chip active" onclick="selectDemoUser('1234567890', this)">
-          <span>🏡 Domestic Stepped (Home)</span>
+          <div class="chip-icon-box"><i data-lucide="home" style="width:13px; height:13px;"></i></div>
+          <span>Domestic Stepped (Home)</span>
         </div>
         <div class="demo-chip" onclick="selectDemoUser('9876543210', this)">
-          <span>🏢 Commercial Low Voltage (Shop)</span>
+          <div class="chip-icon-box"><i data-lucide="store" style="width:13px; height:13px;"></i></div>
+          <span>Commercial Low Voltage (Shop)</span>
         </div>
         <div class="demo-chip" onclick="selectDemoUser('1122334455', this)">
-          <span>🏭 Mining & Industrial</span>
+          <div class="chip-icon-box"><i data-lucide="factory" style="width:13px; height:13px;"></i></div>
+          <span>Mining & Industrial</span>
         </div>
         <div class="demo-chip" onclick="selectDemoUser('5566778899', this)">
-          <span>🌾 Agricultural / Irrigation</span>
+          <div class="chip-icon-box"><i data-lucide="sprout" style="width:13px; height:13px;"></i></div>
+          <span>Agricultural / Irrigation</span>
         </div>
       </div>
     </div>
