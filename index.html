@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZETDC SmartPay | National Digital Electricity Vending Platform</title>
+  <title>ZETDC SmartPay | National Digital Electricity Vending Gateway</title>
   <!-- Google Fonts: Inter & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,7 +35,6 @@
       --radius-sm: 6px;
       --shadow-subtle: 0 1px 3px rgba(9, 30, 66, 0.08), 0 1px 2px rgba(9, 30, 66, 0.04);
       --shadow-card: 0 4px 16px rgba(9, 30, 66, 0.06), 0 0 1px rgba(9, 30, 66, 0.12);
-      --shadow-hover: 0 12px 28px rgba(9, 30, 66, 0.12), 0 0 1px rgba(9, 30, 66, 0.2);
       --font-heading: 'Outfit', sans-serif;
       --font-body: 'Inter', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
@@ -57,7 +56,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Top National Header */
+    /* Top Institutional Bar */
     .top-bar {
       background: #091E42;
       color: #97A0AF;
@@ -171,7 +170,6 @@
       100% { transform: scale(0.9); opacity: 0.8; }
     }
 
-    /* Layout */
     .app-wrapper {
       max-width: 1400px;
       width: 100%;
@@ -182,7 +180,7 @@
       gap: 28px;
     }
 
-    /* Executive Hero / Stat Ribbon */
+    /* Executive Stat Ribbon */
     .metric-ribbon {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -210,8 +208,6 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      position: relative;
-      overflow: hidden;
       transition: all 0.2s ease;
     }
 
@@ -255,8 +251,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--background);
-      color: var(--text-main);
     }
 
     /* Main Dashboard Grid */
@@ -272,7 +266,6 @@
       }
     }
 
-    /* Premium Vending Panel */
     .glass-card {
       background: var(--surface);
       border-radius: var(--radius-xl);
@@ -342,7 +335,7 @@
       color: var(--text-faint);
     }
 
-    .custom-input {
+    .custom-input, .custom-select {
       width: 100%;
       height: 52px;
       padding: 0 16px 0 48px;
@@ -356,11 +349,64 @@
       transition: all 0.2s;
     }
 
-    .custom-input:focus {
+    .custom-input:focus, .custom-select:focus {
       outline: none;
       border-color: var(--primary);
       background: var(--surface);
       box-shadow: 0 0 0 3px rgba(0, 135, 90, 0.15);
+    }
+
+    /* Quick Demo Profile Chips */
+    .demo-selector-wrap {
+      margin-bottom: 20px;
+      padding: 14px;
+      background: #F4F5F7;
+      border-radius: var(--radius-md);
+      border: 1px dashed var(--card-border);
+    }
+
+    .demo-selector-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .demo-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .demo-chip {
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .demo-chip:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .demo-chip.active {
+      background: var(--dark);
+      color: white;
+      border-color: var(--dark);
     }
 
     .meter-verified-chip {
@@ -470,15 +516,19 @@
       background: linear-gradient(135deg, #091E42 0%, #172B4D 100%);
       color: white;
       border-radius: var(--radius-lg);
-      padding: 18px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      padding: 20px 24px;
       margin-bottom: 24px;
     }
 
+    .calc-box-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
     .calc-left h4 {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: #97A0AF;
@@ -496,10 +546,30 @@
 
     .calc-units {
       font-family: var(--font-heading);
-      font-size: 1.85rem;
+      font-size: 2rem;
       font-weight: 800;
       color: #36B37E;
       line-height: 1;
+    }
+
+    .calc-tier-breakdown {
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .tier-breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.76rem;
+      color: #B3D4FF;
+    }
+
+    .tier-breakdown-row strong {
+      color: white;
+      font-family: var(--font-mono);
     }
 
     /* Payment Channels Radio Grid */
@@ -678,11 +748,11 @@
     }
 
     .tele-item strong {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       color: white;
     }
 
-    /* History & Analytics Card */
+    /* History & Tariff Matrix Card */
     .analytics-card {
       background: var(--surface);
       border-radius: var(--radius-xl);
@@ -691,11 +761,39 @@
       box-shadow: var(--shadow-card);
     }
 
+    .tariff-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+
+    .tariff-table th {
+      text-align: left;
+      padding: 8px 10px;
+      background: #F4F5F7;
+      color: var(--text-sub);
+      font-weight: 700;
+      border-bottom: 1.5px solid var(--card-border);
+    }
+
+    .tariff-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--card-border);
+      color: var(--text-main);
+    }
+
+    .tariff-table tr.active-tariff td {
+      background: #E3FCEF;
+      font-weight: 700;
+      color: #006644;
+    }
+
     .history-feed {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 380px;
+      max-height: 260px;
       overflow-y: auto;
       margin-top: 14px;
     }
@@ -708,11 +806,6 @@
       background: #FAFBFC;
       border: 1px solid var(--card-border);
       border-radius: var(--radius-md);
-      transition: background 0.15s;
-    }
-
-    .history-row:hover {
-      background: #F4F5F7;
     }
 
     .history-left {
@@ -733,13 +826,13 @@
     }
 
     .history-meta h4 {
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: var(--dark);
     }
 
     .history-meta p {
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       color: var(--text-sub);
       font-family: var(--font-mono);
     }
@@ -756,11 +849,11 @@
     }
 
     .history-cost {
-      font-size: 0.76rem;
+      font-size: 0.74rem;
       color: var(--text-sub);
     }
 
-    /* Success Receipt Modal */
+    /* Modal Backdrop */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -868,12 +961,12 @@
   <!-- Top Institutional Bar -->
   <div class="top-bar">
     <div class="top-bar-left">
-      <span class="flag-pill">🇿🇼 ZETDC Official Digital Portal</span>
+      <span class="flag-pill">🇿🇼 ZETDC Official Electricity Gateway</span>
       <span>•</span>
-      <span>National Electricity Vending Gateway</span>
+      <span>Multi-Category Tariff Engine</span>
     </div>
     <div>
-      <span>Tariff Schedule: Statutory Instrument (SI) Approved</span>
+      <span>Tariff Schedule: SI 168/2012 & 1 Dec 2023 Gazette</span>
     </div>
   </div>
 
@@ -886,26 +979,59 @@
         </div>
         <div class="brand-titles">
           <h1>SmartMeter ZW</h1>
-          <p>Over-The-Air Digital Vending</p>
+          <p>National Prepaid Electricity Gateway</p>
         </div>
       </a>
       <div class="header-actions">
         <div class="system-status-indicator">
           <div class="live-dot"></div>
-          <span>Instant OTA Crediting Active</span>
+          <span>Direct OTA Crediting Active</span>
         </div>
       </div>
     </div>
   </header>
 
   <div class="app-wrapper">
+    <!-- Quick Demo Profile Selector -->
+    <div class="demo-selector-wrap">
+      <div class="demo-selector-label">
+        <i data-lucide="users" style="width:14px; height:14px;"></i>
+        <span>Switch Customer Tariff Category Test Profiles:</span>
+      </div>
+      <div class="demo-chips">
+        <div class="demo-chip active" onclick="selectDemoUser('1234567890', this)">
+          <span>🏡 Domestic Stepped (Home)</span>
+        </div>
+        <div class="demo-chip" onclick="selectDemoUser('9876543210', this)">
+          <span>🏢 Commercial Low Voltage (Shop)</span>
+        </div>
+        <div class="demo-chip" onclick="selectDemoUser('1122334455', this)">
+          <span>🏭 Mining & Industrial</span>
+        </div>
+        <div class="demo-chip" onclick="selectDemoUser('5566778899', this)">
+          <span>🌾 Agricultural / Irrigation</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Executive Metric Ribbon -->
     <div class="metric-ribbon">
       <div class="metric-card">
         <div class="metric-card-info">
-          <span>Domestic Tariff</span>
-          <h3>$0.35</h3>
-          <small><i data-lucide="info" style="width:12px; height:12px;"></i> Official ZERA Rate / Unit</small>
+          <span>Domestic Lifeline</span>
+          <h3>$0.05</h3>
+          <small><i data-lucide="check" style="width:12px; height:12px;"></i> Tier 1: 1st 50 kWh</small>
+        </div>
+        <div class="metric-card-icon" style="background:#E3FCEF; color:#00875A;">
+          <i data-lucide="home"></i>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-card-info">
+          <span>Domestic Standard</span>
+          <h3>$0.19</h3>
+          <small><i data-lucide="trending-up" style="width:12px; height:12px;"></i> Tier 2: 51 to 300 kWh</small>
         </div>
         <div class="metric-card-icon" style="background:#DEEBFF; color:#0052CC;">
           <i data-lucide="tag"></i>
@@ -914,48 +1040,37 @@
 
       <div class="metric-card">
         <div class="metric-card-info">
-          <span>ZiG Equiv. Rate</span>
-          <h3>8.75 ZiG</h3>
-          <small><i data-lucide="trending-up" style="width:12px; height:12px;"></i> Official Currency Peg</small>
+          <span>Commercial & Mining</span>
+          <h3>$0.20</h3>
+          <small><i data-lucide="briefcase" style="width:12px; height:12px;"></i> Low Voltage Prepayment</small>
         </div>
         <div class="metric-card-icon" style="background:#FFFAE6; color:#FF8B00;">
-          <i data-lucide="coins"></i>
+          <i data-lucide="building-2"></i>
         </div>
       </div>
 
       <div class="metric-card">
         <div class="metric-card-info">
-          <span>Tokenless System</span>
-          <h3>100% Direct</h3>
-          <small><i data-lucide="check-circle" style="width:12px; height:12px;"></i> No 20-digit STS entry</small>
+          <span>Domestic Excess</span>
+          <h3>$0.25</h3>
+          <small><i data-lucide="alert-circle" style="width:12px; height:12px;"></i> Tier 3: Above 300 kWh</small>
         </div>
-        <div class="metric-card-icon" style="background:#E3FCEF; color:#00875A;">
-          <i data-lucide="radio"></i>
-        </div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-card-info">
-          <span>Gateway Latency</span>
-          <h3>&lt; 2.5s</h3>
-          <small><i data-lucide="activity" style="width:12px; height:12px;"></i> Instant Grid Credit</small>
-        </div>
-        <div class="metric-card-icon" style="background:#EAE6FF; color:#5243AA;">
+        <div class="metric-card-icon" style="background:#FFEBE6; color:#DE350B;">
           <i data-lucide="gauge"></i>
         </div>
       </div>
     </div>
 
-    <!-- Main Dashboard Body -->
+    <!-- Main Dashboard Grid -->
     <div class="dashboard-grid">
-      <!-- Left Column: Professional Direct Purchase Desk -->
+      <!-- Left Column: Direct Purchase Desk -->
       <div class="glass-card">
         <div class="section-title-wrap">
           <div class="section-title">
             <i data-lucide="shopping-cart" style="color:var(--primary); width:22px; height:22px;"></i>
             <span>Instant Electricity Purchase</span>
           </div>
-          <span class="step-badge">Direct OTA Crediting</span>
+          <span class="step-badge" id="tariffCategoryBadge">Domestic Stepped (E1.2.2)</span>
         </div>
 
         <form id="purchaseForm" onsubmit="handleDirectPurchase(event)">
@@ -963,7 +1078,7 @@
           <div class="field-group">
             <div class="field-label">
               <span>Target Prepaid Meter Number</span>
-              <span class="field-hint">Auto-verifies account details</span>
+              <span class="field-hint">Auto-detects registered category & tariff</span>
             </div>
             <div class="input-box">
               <i data-lucide="hash" style="width:20px; height:20px;"></i>
@@ -985,7 +1100,7 @@
                   <p id="verifiedAddress">25 Samora Machel Ave, Harare</p>
                 </div>
               </div>
-              <span style="font-size:0.75rem; font-weight:700; color:var(--primary); font-family:var(--font-mono);">ZETDC ACTIVE</span>
+              <span style="font-size:0.75rem; font-weight:700; color:var(--primary); font-family:var(--font-mono);" id="verifiedCategory">DOMESTIC</span>
             </div>
           </div>
 
@@ -1024,20 +1139,33 @@
                 min="1" 
                 step="any"
                 required
-                oninput="recalculateUnits()"
+                oninput="recalculateYield()"
               >
             </div>
           </div>
 
           <!-- Dynamic Real-Time Calculations Box -->
           <div class="calc-box">
-            <div class="calc-left">
-              <h4>Direct Recharge Yield</h4>
-              <p>Tariff: <span id="tariffRateText">$0.35 / kWh Unit</span></p>
+            <div class="calc-box-top">
+              <div class="calc-left">
+                <h4>Calculated Units Yield</h4>
+                <p id="calcTariffDesc">Tariff: Domestic Stepped (SI 168/2012)</p>
+              </div>
+              <div class="calc-right">
+                <div class="calc-units" id="calculatedUnitsDisplay">86.49 Units</div>
+                <small style="color:#DEEBFF; font-size:0.72rem;">Credited directly to meter</small>
+              </div>
             </div>
-            <div class="calc-right">
-              <div class="calc-units" id="calculatedUnitsDisplay">28.57 Units</div>
-              <small style="color:#DEEBFF; font-size:0.72rem;">Credited directly to meter</small>
+            <!-- Dynamic Stepped Tier Yield Breakdown -->
+            <div class="calc-tier-breakdown" id="tierBreakdownList">
+              <div class="tier-breakdown-row">
+                <span>1st 50 kWh @ $0.05 (Lifeline):</span>
+                <strong>50.00 Units</strong>
+              </div>
+              <div class="tier-breakdown-row">
+                <span>51 to 300 kWh @ $0.19 (Standard):</span>
+                <strong>36.49 Units</strong>
+              </div>
             </div>
           </div>
 
@@ -1098,7 +1226,7 @@
         </form>
       </div>
 
-      <!-- Right Column: Live Meter Telemetry & Transaction Feed -->
+      <!-- Right Column: Live Meter Telemetry & Tariff Schedule -->
       <div class="right-column">
         <!-- Live Meter Account Telemetry Card -->
         <div class="account-telemetry-card">
@@ -1117,11 +1245,11 @@
             </div>
             <div class="tele-item">
               <span>Tariff Plan</span>
-              <strong id="cardTariffPlan">Domestic (R1)</strong>
+              <strong id="cardTariffPlan">Domestic Stepped (E1.2.2)</strong>
             </div>
             <div class="tele-item">
-              <span>Grid Connection</span>
-              <strong style="color:#36B37E;">● ONLINE (DIRECT)</strong>
+              <span>Monthly Purchases</span>
+              <strong id="cardMonthlyUnits">0.00 kWh so far</strong>
             </div>
             <div class="tele-item">
               <span>Est. Autonomy</span>
@@ -1130,18 +1258,52 @@
           </div>
         </div>
 
-        <!-- 7-Day Consumption Trends Chart -->
+        <!-- Official Gazetted Tariffs Schedule Matrix -->
         <div class="analytics-card">
-          <div class="section-title-wrap" style="margin-bottom:14px; padding-bottom:10px;">
+          <div class="section-title-wrap" style="margin-bottom:10px; padding-bottom:8px;">
             <div class="section-title" style="font-size:1.05rem;">
-              <i data-lucide="bar-chart-3" style="color:var(--sky); width:18px; height:18px;"></i>
-              <span>Weekly Consumption (kWh)</span>
+              <i data-lucide="file-text" style="color:var(--sky); width:18px; height:18px;"></i>
+              <span>Official Gazetted Prepayment Tariffs</span>
             </div>
-            <span style="font-size:0.75rem; color:var(--text-sub); font-weight:600;">Last 7 Days</span>
+            <span style="font-size:0.72rem; color:var(--text-sub); font-weight:600;">1 Dec 2023 Gazette</span>
           </div>
-          <div style="height: 140px; position: relative;">
-            <canvas id="consumptionChart"></canvas>
-          </div>
+
+          <table class="tariff-table">
+            <thead>
+              <tr>
+                <th>Customer Category</th>
+                <th>Rate / Block</th>
+                <th>Taxes (REA/VAT)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr id="row-DOMESTIC_STEPPED" class="active-tariff">
+                <td><strong>Domestic Stepped (E1.2.2)</strong></td>
+                <td>$0.05 / $0.19 / $0.25</td>
+                <td>6% REA (Zero VAT)</td>
+              </tr>
+              <tr id="row-COMMERCIAL_PREPAID">
+                <td><strong>Commercial (E4.3)</strong></td>
+                <td>$0.20 flat</td>
+                <td>6% REA + 15% VAT</td>
+              </tr>
+              <tr id="row-INDUSTRIAL_MINING">
+                <td><strong>Mining & Industrial (E3.1)</strong></td>
+                <td>$0.20 flat</td>
+                <td>6% REA + 15% VAT</td>
+              </tr>
+              <tr id="row-AGRICULTURAL">
+                <td><strong>Agricultural (E5.1)</strong></td>
+                <td>$0.20 flat</td>
+                <td>6% REA + 15% VAT</td>
+              </tr>
+              <tr id="row-PUBLIC_LIGHTING">
+                <td><strong>Public Lighting (E2.1)</strong></td>
+                <td>$0.19 flat</td>
+                <td>6% REA (Zero VAT)</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <!-- Recent Top-Up Audit Ledger -->
@@ -1182,8 +1344,12 @@
           <strong id="rcptMeter">1234567890</strong>
         </div>
         <div class="rcpt-line">
+          <span>Tariff Category:</span>
+          <strong id="rcptTariff">Domestic Stepped</strong>
+        </div>
+        <div class="rcpt-line">
           <span>Units Added:</span>
-          <strong id="rcptUnits" style="color:var(--primary);">+28.57 kWh</strong>
+          <strong id="rcptUnits" style="color:var(--primary);">+86.49 kWh</strong>
         </div>
         <div class="rcpt-line">
           <span>Amount Paid:</span>
@@ -1195,7 +1361,7 @@
         </div>
         <div class="rcpt-line">
           <span>New Total Balance:</span>
-          <strong id="rcptBalance" style="color:var(--primary);">74.29 Units</strong>
+          <strong id="rcptBalance" style="color:var(--primary);">132.21 Units</strong>
         </div>
       </div>
 
@@ -1206,47 +1372,25 @@
   <script>
     const BASE_URL = window.location.origin;
     let activeCurrency = 'USD';
-    const USD_RATE = 0.35;
-    const ZIG_RATE = 8.75;
+    let currentTariffCategory = 'DOMESTIC_STEPPED';
+    let currentMonthlyPurchased = 0.0;
 
     const presetsUSD = [5, 10, 20, 50];
     const presetsZIG = [50, 100, 200, 500];
 
-    let chartInstance = null;
-
-    function initChart() {
-      const ctx = document.getElementById('consumptionChart').getContext('2d');
-      chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          datasets: [{
-            label: 'kWh Used',
-            data: [9.4, 11.2, 8.7, 12.0, 10.5, 13.8, 11.0],
-            backgroundColor: '#00875A',
-            borderRadius: 6,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: true, grid: { color: '#EBECF0' }, ticks: { font: { family: 'Inter', size: 10 } } },
-            x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 10 } } }
-          }
-        }
-      });
+    function selectDemoUser(meterNum, element) {
+      document.querySelectorAll('.demo-chip').forEach(c => c.classList.remove('active'));
+      element.classList.add('active');
+      document.getElementById('meterNumber').value = meterNum;
+      lookupMeter(meterNum);
     }
 
     function setCurrency(curr) {
       activeCurrency = curr;
       document.getElementById('btnUSD').classList.toggle('active', curr === 'USD');
       document.getElementById('btnZIG').classList.toggle('active', curr === 'ZIG');
-      document.getElementById('tariffRateText').textContent = curr === 'USD' ? '$0.35 / kWh Unit' : '8.75 ZiG / kWh Unit';
-      
       renderPresets();
-      recalculateUnits();
+      recalculateYield();
     }
 
     function renderPresets() {
@@ -1263,7 +1407,7 @@
           document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           document.getElementById('customAmount').value = val;
-          recalculateUnits();
+          recalculateYield();
         };
         container.appendChild(btn);
       });
@@ -1271,11 +1415,45 @@
       document.getElementById('customAmount').value = presets[1];
     }
 
-    function recalculateUnits() {
-      const amt = parseFloat(document.getElementById('customAmount').value) || 0;
-      const rate = activeCurrency === 'USD' ? USD_RATE : ZIG_RATE;
-      const units = (amt / rate).toFixed(2);
-      document.getElementById('calculatedUnitsDisplay').textContent = `${units} Units`;
+    let quoteDebounce = null;
+    function recalculateYield() {
+      clearTimeout(quoteDebounce);
+      quoteDebounce = setTimeout(async () => {
+        const amt = parseFloat(document.getElementById('customAmount').value) || 0;
+        try {
+          const res = await fetch(`${BASE_URL}/api/calculate_quote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tariff_category: currentTariffCategory,
+              amount: amt,
+              currency: activeCurrency,
+              monthly_units: currentMonthlyPurchased
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const q = data.quote;
+            document.getElementById('calculatedUnitsDisplay').textContent = `${q.units_credited} Units`;
+            document.getElementById('calcTariffDesc').textContent = `Category: ${q.category_name} (REA: ${q.rea_levy_percent}%, VAT: ${q.vat_percent}%)`;
+
+            // Render tier breakdown
+            const breakdownContainer = document.getElementById('tierBreakdownList');
+            if (q.tier_breakdown && q.tier_breakdown.length > 0) {
+              breakdownContainer.innerHTML = q.tier_breakdown.map(t => `
+                <div class="tier-breakdown-row">
+                  <span>${t.tier} @ $${t.rate}:</span>
+                  <strong>${t.units} Units</strong>
+                </div>
+              `).join('');
+            } else {
+              breakdownContainer.innerHTML = '';
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }, 150);
     }
 
     let lookupDebounce = null;
@@ -1292,11 +1470,23 @@
             document.getElementById('cardUnitsBalance').textContent = `${data.unit_balance} Units`;
             document.getElementById('cardMeterBadge').textContent = `#${data.meter_number}`;
             document.getElementById('cardAccountName').textContent = data.username;
-            document.getElementById('cardTariffPlan').textContent = data.tariff_plan || 'Domestic (R1)';
-            
+            document.getElementById('cardTariffPlan').textContent = data.tariff_name;
+            document.getElementById('tariffCategoryBadge').textContent = data.tariff_name;
+            document.getElementById('verifiedCategory').textContent = data.tariff_category;
+
+            currentTariffCategory = data.tariff_category;
+            currentMonthlyPurchased = data.monthly_purchased_units || 0.0;
+            document.getElementById('cardMonthlyUnits').textContent = `${currentMonthlyPurchased.toFixed(2)} kWh so far`;
+
+            // Highlight category row in table
+            document.querySelectorAll('.tariff-table tr').forEach(r => r.classList.remove('active-tariff'));
+            const targetRow = document.getElementById(`row-${data.tariff_category}`);
+            if (targetRow) targetRow.classList.add('active-tariff');
+
             const estDays = Math.max(1, Math.round(data.unit_balance / 3.5));
             document.getElementById('cardEstDays').textContent = `~${estDays} Days Left`;
 
+            recalculateYield();
             loadTransactions(data.meter_number);
           }
         } catch (e) {
@@ -1323,7 +1513,7 @@
                       <i data-lucide="zap" style="width:16px; height:16px;"></i>
                     </div>
                     <div class="history-meta">
-                      <h4>${t.payment_method} Recharge</h4>
+                      <h4>${t.payment_method} (${t.tariff_category})</h4>
                       <p>${t.reference_id} • ${dt}</p>
                     </div>
                   </div>
@@ -1382,6 +1572,7 @@
           // Fill Receipt
           document.getElementById('rcptRef').textContent = data.reference_id;
           document.getElementById('rcptMeter').textContent = data.meter_number;
+          document.getElementById('rcptTariff').textContent = currentTariffCategory;
           document.getElementById('rcptUnits').textContent = `+${data.units_credited} kWh`;
           document.getElementById('rcptAmount').textContent = `${data.currency === 'USD' ? '$' : 'ZiG '}${data.amount.toFixed(2)}`;
           document.getElementById('rcptMethod').textContent = channel;
@@ -1414,9 +1605,7 @@
 
     window.onload = () => {
       lucide.createIcons();
-      initChart();
       renderPresets();
-      recalculateUnits();
       lookupMeter('1234567890');
     };
   </script>
