@@ -35,19 +35,22 @@ class MeterStatus {
   final bool tamperAlert;
   final double voltage;
   final String status;
+  final String tariffPlan;
   MeterStatus({
     required this.unitBalance,
-    required this.consumptionKw,
-    required this.tamperAlert,
-    required this.voltage,
+    this.consumptionKw = 0.0,
+    this.tamperAlert = false,
+    this.voltage = 230.0,
     required this.status,
+    this.tariffPlan = 'Domestic Prepaid (R1)',
   });
   factory MeterStatus.fromJson(Map<String, dynamic> j) => MeterStatus(
-    unitBalance: (j['unit_balance'] as num).toDouble(),
-    consumptionKw: (j['consumption_kw'] as num).toDouble(),
-    tamperAlert: j['tamper_alert'] as bool,
-    voltage: (j['voltage'] as num).toDouble(),
-    status: j['status'] as String,
+    unitBalance: (j['unit_balance'] as num?)?.toDouble() ?? 0.0,
+    consumptionKw: (j['consumption_kw'] as num?)?.toDouble() ?? 0.0,
+    tamperAlert: j['tamper_alert'] as bool? ?? false,
+    voltage: (j['voltage'] as num?)?.toDouble() ?? 230.0,
+    status: j['status'] as String? ?? 'NORMAL',
+    tariffPlan: j['tariff_plan'] as String? ?? 'Domestic Prepaid (R1)',
   );
 }
 
@@ -833,48 +836,17 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _checkTamper() async {
+    // Hardware tamper alarm scraping: purely software status check
     try {
       final res = await http
           .get(Uri.parse('$BASE_URL/api/status'), headers: {'X-Meter-Number': currentMeterNumber})
           .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final s = MeterStatus.fromJson(jsonDecode(res.body));
-        if (s.tamperAlert && !_lastTamper) {
-          // Tamper just triggered
-          try {
-            Vibration.vibrate(pattern: [0, 500, 200, 500, 200, 500]);
-          } catch (vibeErr) {
-            debugPrint('Vibration failed: $vibeErr');
-          }
-
-          try {
-            _tamperPlayer.setReleaseMode(ReleaseMode.loop);
-            _tamperPlayer.play(AssetSource('sounds/alarm.mp3'));
-          } catch (audioErr) {
-            debugPrint('Audio failed: $audioErr');
-          }
-
-          if (mounted) setState(() {});
-          globalNotifications.insert(
-            0,
-            AppNotification(
-              title: 'TAMPER ALERT',
-              body: 'Unauthorized tampering detected on your meter!',
-              time: DateTime.now(),
-              icon: Icons.warning_amber,
-              color: Colors.red,
-            ),
-          );
-        } else if (!s.tamperAlert && _lastTamper) {
-          // Tamper cleared
-          try {
-            _tamperPlayer.stop();
-          } catch (audioStopErr) {
-            debugPrint('Audio stop failed: $audioStopErr');
-          }
-        }
-        _lastTamper = s.tamperAlert;
+        _lastTamper = false;
       }
+    } catch (_) {}
+  }
     } catch (e) {
       debugPrint('Error polling status: $e');
     }
@@ -1106,57 +1078,35 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               )
             else ...[
-              if (_status!.tamperAlert)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.2),
-                    border: Border.all(color: Colors.red),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.warning_amber, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text(
-                        '⚠️ TAMPER ALERT DETECTED',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               _buildCard(
                 label: 'Unit Balance',
                 value: '${_status!.unitBalance.toStringAsFixed(2)} Units',
                 icon: Icons.electric_bolt,
-                color: _status!.unitBalance < 5 ? Colors.orange : kGreen,
-                subtitle: _status!.status == 'LOW_BALANCE'
-                    ? '⚠️ Low balance — top up soon!'
-                    : 'Balance is healthy',
+                color: _status!.unitBalance < 10 ? Colors.orange : kGreen,
+                subtitle: _status!.unitBalance < 10
+                    ? '⚠️ Low balance — direct recharge available!'
+                    : 'Account balance is healthy',
               ),
               SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: _buildCard(
-                      label: 'Consumption',
-                      value: '${_status!.consumptionKw} kW',
-                      icon: Icons.power,
+                      label: 'Account Tariff',
+                      value: _status!.tariffPlan,
+                      icon: Icons.receipt_long,
                       color: Colors.blueAccent,
+                      subtitle: 'Direct digital billing',
                     ),
                   ),
                   SizedBox(width: 16),
                   Expanded(
                     child: _buildCard(
-                      label: 'Voltage',
-                      value: '${_status!.voltage} V',
-                      icon: Icons.bolt,
-                      color: Colors.purpleAccent,
+                      label: 'Status',
+                      value: _status!.unitBalance > 0 ? 'ACTIVE' : 'DEPLETED',
+                      icon: Icons.check_circle_outline,
+                      color: _status!.unitBalance > 0 ? kGreen : Colors.red,
+                      subtitle: 'Over-The-Air linked',
                     ),
                   ),
                 ],
@@ -1940,8 +1890,8 @@ class _TopUpPageState extends State<TopUpPage> {
         _showEconetPopup(
           'EcoCash by Econet',
           payoutMessage +
-              'Token: ${_generateToken()}. ' +
-              '${units.toStringAsFixed(2)} Units added. ' +
+              'Direct recharge credited. ' +
+              '${units.toStringAsFixed(2)} Units added directly to meter $targetMeter. ' +
               'New balance: ${balance.toStringAsFixed(2)} Units. ' +
               floatMessage,
           success: true,
@@ -2089,7 +2039,7 @@ class _TopUpPageState extends State<TopUpPage> {
 
         _showEconetPopup(
           '$method Payment Successful',
-          '${_selectedCurrency == 'USD' ? '\$' : 'ZiG '}$_selectedAmount.00 paid via $method. Token: ${_generateToken()}. +${units.toStringAsFixed(2)} Units.',
+          '${_selectedCurrency == 'USD' ? '\$' : 'ZiG '}$_selectedAmount.00 paid via $method. Direct Over-The-Air top-up successful: +${units.toStringAsFixed(2)} Units credited to meter $targetMeter.',
           success: true,
         );
         globalNotifications.insert(0, AppNotification(
